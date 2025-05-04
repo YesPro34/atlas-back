@@ -1,0 +1,108 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id              String          @id @default(uuid())
+  massarCode      String          @unique() @map("massar_code")
+  password        String          @map("mot_de_passe")
+  role            String          // admin or student 
+  status          UserStatus?     @default(INACTIVE)
+  firstName       String          @map("prenom")
+  lastName        String          @map("nom")
+  bacOption       BacOption?      @map("option_bac")
+  city            String?         @map("ville")
+  nationalMark    Float?          @map("note_national")
+  generalMark     Float?          @map("moyenne_general")
+  mathMark        Float?          @map("note_math")
+  physicMark      Float?          @map("note_physique")
+  svtMark         Float?          @map("note_svt")
+  englishMark     Float?          @map("note_anglais")
+  philosophyMark  Float?          @map("note_philosophie")
+  sessions      Session[]
+  applications    Application[]
+
+  @@map("utilisateurs")
+}
+
+model Session {
+  id        String   @id @default(uuid())
+  token     String   @unique
+  createdAt DateTime @default(now()) @map("date_creation")
+  expiresAt DateTime @map("date_expiration")
+  updatedAt DateTime @updatedAt @map("date_modification")
+  userId    String   @map("utilisateur_id")
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("session")
+}
+
+model TokenVerification {
+  id        String      @id @default(uuid())
+  email     String      @map("email")
+  createdAt DateTime    @default(now()) @map("date_creation")
+  expireAt  DateTime?   @map("date_expiration")
+  status    TokenStatus @default(PENDING) @map("etat")
+
+  @@map("token_verification")
+}
+
+model School {
+  id                String       @id @default(uuid())
+  name              String        @map("nom")
+  filieres          String[]
+  bacOptionsAllowed BacOption[]   @map("option_bac_autorise")
+  isOpen            Boolean       @default(false) @map("est_ouverte")
+  applications      Application[]
+
+  @@map("ecoles")
+}
+
+
+
+model Application {
+  id                 String       @id @default(uuid())
+  userId             String       @map("utilisateur_id")
+  schoolId           String       @map("ecole_id")
+  selectedFiliere    String?      @map("filieres_choisi")
+  status             ApplicationStatus @default(PENDING)
+  createdAt          DateTime     @default(now()) @map("created_at")
+  updatedAt          DateTime     @updatedAt @map("updated_at")
+  student            User         @relation(fields: [userId], references: [id])
+  school             School       @relation(fields: [schoolId], references: [id])
+
+  @@unique([userId, schoolId])
+  @@map("applications")
+}
+
+// PascalCase enum names
+enum BacOption {
+  PC
+  SVT
+  SMA
+  ECO
+  SMB
+  STE
+  STM
+  SGC
+}
+
+enum TokenStatus {
+  PENDING
+  DONE
+}
+
+enum UserStatus {
+  ACTIVE
+  INACTIVE
+}
+
+enum ApplicationStatus {
+  PENDING
+  REGISTERED
+}
