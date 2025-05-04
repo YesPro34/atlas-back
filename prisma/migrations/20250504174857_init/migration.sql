@@ -1,5 +1,8 @@
 -- CreateEnum
-CREATE TYPE "BacOption" AS ENUM ('PC', 'SVT', 'SMA', 'ECO', 'SMB', 'STE', 'STM', 'SGC');
+CREATE TYPE "userRole" AS ENUM ('STUDENT', 'ADMIN');
+
+-- CreateEnum
+CREATE TYPE "BacOption" AS ENUM ('null', 'PC', 'SVT', 'SMA', 'ECO', 'SMB', 'STE', 'STM', 'SGC');
 
 -- CreateEnum
 CREATE TYPE "TokenStatus" AS ENUM ('PENDING', 'DONE');
@@ -15,11 +18,11 @@ CREATE TABLE "utilisateurs" (
     "id" TEXT NOT NULL,
     "massar_code" TEXT NOT NULL,
     "mot_de_passe" TEXT NOT NULL,
-    "role" TEXT NOT NULL,
-    "status" "UserStatus" DEFAULT 'INACTIVE',
+    "role" "userRole" NOT NULL,
+    "etat" "UserStatus" NOT NULL DEFAULT 'INACTIVE',
     "prenom" TEXT NOT NULL,
     "nom" TEXT NOT NULL,
-    "option_bac" "BacOption",
+    "option_bac" "BacOption" NOT NULL,
     "ville" TEXT,
     "note_national" DOUBLE PRECISION,
     "moyenne_general" DOUBLE PRECISION,

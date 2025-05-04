@@ -11,8 +11,8 @@ model User {
   id              String          @id @default(uuid())
   massarCode      String          @unique() @map("massar_code")
   password        String          @map("mot_de_passe")
-  role            String          // admin or student 
-  status          UserStatus?     @default(INACTIVE)
+  role            userRole        @map("role")
+  status          UserStatus      @default(INACTIVE) @map("etat")
   firstName       String          @map("prenom")
   lastName        String          @map("nom")
   bacOption       BacOption?      @map("option_bac")
@@ -24,7 +24,7 @@ model User {
   svtMark         Float?          @map("note_svt")
   englishMark     Float?          @map("note_anglais")
   philosophyMark  Float?          @map("note_philosophie")
-  sessions      Session[]
+  sessions        Session[]
   applications    Application[]
 
   @@map("utilisateurs")
@@ -78,6 +78,11 @@ model Application {
 
   @@unique([userId, schoolId])
   @@map("applications")
+}
+
+enum userRole {
+  STUDENT
+  ADMIN
 }
 
 // PascalCase enum names
