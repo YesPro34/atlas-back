@@ -1,7 +1,6 @@
 import { userRole, UserStatus, BacOption } from '@prisma/client';
 import {
   IsString,
-  IsNotEmpty,
   IsEnum,
   IsOptional,
   IsNumber,
@@ -9,28 +8,20 @@ import {
   Max,
 } from 'class-validator';
 
-export class CreateUserDto {
+export class UpdateUserDto {
   @IsString()
-  @IsNotEmpty({ message: 'Password is required' })
-  password: string;
-
-  @IsString()
-  @IsNotEmpty({ message: 'Massar code is required' })
-  massarCode: string;
-
-  @IsString()
-  @IsNotEmpty({ message: 'First name is required' })
+  @IsOptional()
   firstName: string;
 
   @IsString()
-  @IsNotEmpty({ message: 'Last name is required' })
+  @IsOptional()
   lastName: string;
 
-  @IsNotEmpty({ message: 'User role is required' })
+  @IsOptional()
   @IsEnum(userRole, { message: 'Invalid user role' })
   role: userRole;
 
-  @IsNotEmpty({ message: 'User status is required' })
+  @IsOptional()
   @IsEnum(UserStatus, { message: 'Invalid user status' })
   status: UserStatus;
 

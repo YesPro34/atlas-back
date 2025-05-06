@@ -14,17 +14,17 @@ export class UserEntity {
   status: UserStatus;
   firstName: string;
   lastName: string;
-  bacOption: BacOption;
-  city?: string | null;
-  nationalMark?: number | null;
-  generalMark?: number | null;
-  mathMark?: number | null;
-  physicMark?: number | null;
-  svtMark?: number | null;
-  englishMark?: number | null;
-  philosophyMark?: number | null;
-  sessions?: Session[] | null;
-  applications?: Application[]| null;
+  bacOption?: BacOption;
+  city?: string;
+  nationalMark?: number;
+  generalMark?: number;
+  mathMark?: number;
+  physicMark?: number;
+  svtMark?: number;
+  englishMark?: number;
+  philosophyMark?: number;
+  sessions?: Session[];
+  applications?: Application[];
 
   constructor(partial: Partial<UserEntity>) {
     Object.assign(this, partial);

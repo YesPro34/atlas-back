@@ -1,29 +1,82 @@
-import { Injectable } from '@nestjs/common';
+import {
+  ConflictException,
+  Injectable,
+  InternalServerErrorException,
+  NotFoundException,
+} from '@nestjs/common';
 import { UserRepository } from '../repositories/user.repository';
 import { CreateUserDto } from '../dto/create-user.dto';
+import * as bcrypt from 'bcrypt';
+import { UpdateUserDto } from '../dto/update-user.dto';
 
 @Injectable()
 export class UserService {
   constructor(private readonly userRepository: UserRepository) {}
 
+  // FIND USER BY HIS MASSAR CODE
   async findByMassarCode(massarCode: string) {
     return await this.userRepository.findByCodeMassar(massarCode);
   }
 
-  // set all crud function for the user with role students
+  // CREATE NEW USER
   async createUser(createUserDto: CreateUserDto) {
-    return await this.userRepository.create(createUserDto);
+    // Check for existing user
+    const existingUser = await this.userRepository.findByCodeMassar(
+      createUserDto.massarCode,
+    );
+    if (existingUser) {
+      throw new ConflictException({
+        statusCode: 409,
+        message: 'Massar code already exists',
+      });
+    }
+    try {
+      // Hash the password before saving
+      const hashedPassword = await bcrypt.hash(createUserDto.password, 10); // 10 is salt rounds
+      const userToCreate = { ...createUserDto, password: hashedPassword };
+
+      await this.userRepository.create(userToCreate);
+    } catch (error) {
+      throw new InternalServerErrorException({
+        statusCode: 500,
+        details: error.message,
+      });
+    }
   }
+  // FIND ALL USERS
   async findAllUsers() {
     return await this.userRepository.findAll();
   }
+  // FIND USER BY ID
   async findUserById(id: string) {
     return await this.userRepository.findById(id);
   }
-  async updateUser(id: string, user: any) {
-    return await this.userRepository.update(id, user);
+
+  // Update USER
+  async updateUser(id: string, updateUserDto: UpdateUserDto) {
+    // Check for existing user
+    const existingUser = await this.userRepository.findById(id);
+    if (!existingUser) {
+      throw new NotFoundException({
+        statusCode: 404,
+        message: `User not found`,
+      });
+    }
+    const updateUser = await this.userRepository.update(id, updateUserDto);
+    if (updateUser) {
+      return { statusCode: 200, message: 'update successfully' };
+    }
   }
+
+  // DELETE USER
   async deleteUser(id: string) {
+    const existingUser = await this.userRepository.findById(id);
+    if (!existingUser) {
+      throw new NotFoundException({
+        statusCode: 404,
+        message: 'this user does not exist',
+      });
+    }
     return await this.userRepository.delete(id);
   }
 }

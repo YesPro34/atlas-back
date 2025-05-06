@@ -1,7 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
 import { CreateUserDto } from '../dto/create-user.dto';
-import { UserEntity } from '../entities/user.entity';
 
 @Injectable()
 export class UserRepository {
@@ -11,13 +10,34 @@ export class UserRepository {
     return await this.prisma.user.findUnique({ where: { massarCode } });
   }
 
-  async create(data: CreateUserDto): Promise<UserEntity> {
-    const user = await this.prisma.user.create({ data: data });
-    return new UserEntity(user);
+  async create(user: CreateUserDto) {
+    const data = {
+      ...user,
+      bacOption: user.bacOption ?? null,
+    };
+    return await this.prisma.user.create({ data });
   }
 
   async findAll() {
-    return await this.prisma.user.findMany();
+    return await this.prisma.user.findMany({
+      select: {
+        id: true,
+        massarCode: true,
+        firstName: true,
+        lastName: true,
+        role: true,
+        status: true,
+        bacOption: true,
+        city: true,
+        nationalMark: true,
+        generalMark: true,
+        mathMark: true,
+        physicMark: true,
+        svtMark: true,
+        englishMark: true,
+        philosophyMark: true,
+      },
+    });
   }
 
   async findById(id: string) {
@@ -25,8 +45,12 @@ export class UserRepository {
   }
 
   async update(id: string, user: any) {
-    return await this.prisma.user.update({ where: { id }, data: user });
+    return await this.prisma.user.update({
+      where: { id },
+      data: user,
+    });
   }
+
   async delete(id: string) {
     return await this.prisma.user.delete({ where: { id } });
   }

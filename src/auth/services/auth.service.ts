@@ -34,7 +34,8 @@ export class AuthService {
     const token = this.authDomainService.generateToken(user.id);
     const expiresAt = this.authDomainService.calculateSessionExpiry();
     await this.authRepository.createSession(user.id, token, expiresAt);
-    return { user, token };
+    const { password, ...safeUser } = user;
+    return { user: safeUser, token };
   }
 
   async refreshToken(userId: string) {
