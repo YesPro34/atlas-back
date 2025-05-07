@@ -31,18 +31,18 @@ export class AuthService {
       throw new UnauthorizedException('Invalid credentials');
     }
 
-    const token = this.authDomainService.generateToken(user.id);
+    const token = this.authDomainService.generateToken(user.id, user.role);
     const expiresAt = this.authDomainService.calculateSessionExpiry();
     await this.authRepository.createSession(user.id, token, expiresAt);
     const { password, ...safeUser } = user;
     return { user: safeUser, token };
   }
 
-  async refreshToken(userId: string) {
+  async refreshToken(userId: string, role: string) {
     const session = await this.authRepository.findSessionByUserId(userId);
     this.authDomainService.validateSession(session);
 
-    const newToken = this.authDomainService.generateToken(userId);
+    const newToken = this.authDomainService.generateToken(userId, role);
     const expiresAt = this.authDomainService.calculateSessionExpiry();
     if (!session) {
       throw new UnauthorizedException('Session not found');

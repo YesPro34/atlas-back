@@ -13,8 +13,8 @@ export class AuthDomainService {
     return compare(plainPassword, hashedPassword);
   }
 
-  generateToken(userId: string): string {
-    return this.jwtService.sign({ sub: userId });
+  generateToken(userId: string, role: string): string {
+    return this.jwtService.sign({ sub: userId, role });
   }
 
   calculateSessionExpiry(): Date {

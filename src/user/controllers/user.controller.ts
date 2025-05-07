@@ -20,6 +20,8 @@ import { diskStorage } from 'multer';
 import { BacOption, userRole, UserStatus } from '@prisma/client';
 import { File } from 'multer';
 import { UpdateUserDto } from '../dto/update-user.dto';
+import { RolesGuard } from 'src/auth/guards/roles.guard';
+import { Roles } from 'src/common/decorators/roles.decorator';
 interface ExcelRow {
   mot_de_passe: string;
   massar_code: string;
@@ -38,7 +40,8 @@ interface ExcelRow {
   note_philosophie?: string;
 }
 
-@UseGuards(JwtAuthGuard)
+@UseGuards(JwtAuthGuard, RolesGuard)
+@Roles('ADMIN')
 @Controller('user')
 export class UserController {
   constructor(private readonly userService: UserService) {}

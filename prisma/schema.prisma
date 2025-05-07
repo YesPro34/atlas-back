@@ -52,32 +52,63 @@ model TokenVerification {
   @@map("token_verification")
 }
 
+model City {
+  id           String            @id @default(uuid())
+  name         String            @map("nom")
+  citySchools  CitySchool[]
+}
+
 model School {
-  id                String       @id @default(uuid())
+  id                String        @id @default(uuid())
   name              String        @map("nom")
-  filieres          String[]
+  type              SchoolType    @map("type")
   bacOptionsAllowed BacOption[]   @map("option_bac_autorise")
   isOpen            Boolean       @default(false) @map("est_ouverte")
-  applications      Application[]
+  citySchools       CitySchool[]
+  filieres          Filiere[]
 
   @@map("ecoles")
 }
 
+model CitySchool {
+  id       String  @id @default(uuid())
+  cityId   String  @map("ville_id")
+  schoolId String  @map("ecole_id")
+  city     City    @relation(fields: [cityId], references: [id])
+  school   School  @relation(fields: [schoolId], references: [id])
+  applications   Application[]  
 
+  @@unique([cityId, schoolId])
+  @@map("ville_jointure_ecole")
+}
+
+model Filiere {
+  id             String      @id @default(uuid())
+  name           String      @map("nom")
+  schoolId       String      @map("ecole_id")
+  school         School      @relation(fields: [schoolId], references: [id])
+  applications   Application[]  
+
+  @@map("filiere")
+}
 
 model Application {
-  id                 String       @id @default(uuid())
-  userId             String       @map("utilisateur_id")
-  schoolId           String       @map("ecole_id")
-  selectedFiliere    String?      @map("filieres_choisi")
-  status             ApplicationStatus @default(PENDING)
-  createdAt          DateTime     @default(now()) @map("created_at")
-  updatedAt          DateTime     @updatedAt @map("updated_at")
-  student            User         @relation(fields: [userId], references: [id])
-  school             School       @relation(fields: [schoolId], references: [id])
+  id               String              @id @default(uuid())
+  userId           String              @map("utilisateur_id")
+  citySchoolId     String?             @map("city_school_id") // for ENSA/ENCG/ENSAM
+  filiereId        String?             @map("filiere_id")      // for EST/FST (national)
+  programGroup     SchoolType          @map("groupe_ecole")    // ENSA, EST, ENCG, etc.
+  rank             Int?                @map("rang")            // Order in selection
+  status           ApplicationStatus   @default(PENDING)
+  createdAt        DateTime            @default(now()) @map("created_at")
+  updatedAt        DateTime            @updatedAt @map("updated_at")
 
-  @@unique([userId, schoolId])
+  student      User         @relation(fields: [userId], references: [id])
+  citySchool   CitySchool?  @relation(fields: [citySchoolId], references: [id])
+  filiere      Filiere?     @relation(fields: [filiereId], references: [id])
+
   @@map("applications")
+  @@unique([userId, programGroup, rank])
 }
 
 enum userRole {
@@ -85,7 +116,6 @@ enum userRole {
   ADMIN
 }
 
-// PascalCase enum names
 enum BacOption {
   PC
   SVT
@@ -110,4 +140,15 @@ enum UserStatus {
 enum ApplicationStatus {
   PENDING
   REGISTERED
+}
+
+enum SchoolType {
+  ENSA
+  EST
+  ENCG
+  ENSAM
+  ISPITS
+  ISSS
+  ISPM
+  MEDICAL
 }

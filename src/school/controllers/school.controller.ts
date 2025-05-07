@@ -14,7 +14,6 @@ import { SchoolService } from '../services/school.service';
 import { CreateSchoolDto, UpdateSchoolDto } from '../dto/create-school.dto';
 import { JwtAuthGuard } from 'src/auth/guards/jwt.guard';
 
-
 @UseGuards(JwtAuthGuard)
 @Controller('school')
 export class SchoolController {
