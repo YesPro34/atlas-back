@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
 import { CreateUserDto } from '../dto/create-user.dto';
+import { BacOption, Prisma } from '@prisma/client';
 
 @Injectable()
 export class UserRepository {
@@ -40,6 +41,24 @@ export class UserRepository {
     });
   }
 
+  async findStudents() {
+    return await this.prisma.user.findMany({
+      where: {
+        role: 'STUDENT',
+      },
+      select: {
+        id: true,
+        massarCode: true,
+        firstName: true,
+        lastName: true,
+        role: true,
+        status: true,
+        bacOption: true,
+        city: true,
+      },
+    });
+  }
+
   async findById(id: string) {
     return await this.prisma.user.findUnique({ where: { id } });
   }
@@ -53,5 +72,14 @@ export class UserRepository {
 
   async delete(id: string) {
     return await this.prisma.user.delete({ where: { id } });
+  }
+
+  async filterByBacOption(bacOption: BacOption) {
+    const where: Prisma.SchoolWhereInput = {
+      bacOptionsAllowed: {
+        has: bacOption,
+      },
+    };
+    return await this.prisma.school.findMany({ where });
   }
 }

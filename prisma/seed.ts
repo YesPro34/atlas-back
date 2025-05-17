@@ -21,6 +21,19 @@ const DEFAULT_ADMIN = {
     philosophyMark: 0
 } as const;
 
+// Cities seeding
+const cities = [
+  "Casablanca", "Rabat", "Fès", "Marrakech", "Agadir", "Tanger", "Oujda",
+  "Meknès", "Tétouan", "El Jadida", "Nador", "Kenitra", "Béni Mellal",
+  "Khouribga", "Settat", "Safi", "Taza", "Mohammedia", "Errachidia", "Laâyoune",
+  "Guelmim", "Ouarzazate", "Taroudant", "Azrou", "Larache", "Al Hoceïma",
+  "Ksar El Kebir", "Berkane", "Taourirt", "Midelt", "Ifrane", "Oued Zem",
+  "Tan-Tan", "Fquih Ben Salah", "Temara", "Tiflet", "Salé", "Sidi Kacem",
+  "Sidi Slimane", "Zagora", "Essaouira", "Tinghir", "Youssoufia", "Jerada",
+  "Dakhla", "Boujdour", "Sidi Bennour", "Benslimane", "Aït Melloul", "Skhirat"
+];
+
+
 async function main() {
   const existingSuperAdmin = await prisma.user.findUnique({
     where: {
@@ -29,9 +42,7 @@ async function main() {
   });
 
   if (!existingSuperAdmin && DEFAULT_ADMIN.massarCode && DEFAULT_ADMIN.password) {
-    const hashedPassword = await bcrypt.hash(DEFAULT_ADMIN.password, 10);
-
-    // Utilisation d'une transaction pour des opérations atomiques
+    const hashedPassword = await bcrypt.hash(DEFAULT_ADMIN.password, 10)
 
       await prisma.user.create({
         data: {
@@ -44,6 +55,18 @@ async function main() {
     }else {
     console.log('Le superadmin existe déjà');
   }
+
+      // create cities
+    for (const cityName of cities) {
+      const existingCity = await prisma.city.findFirst({ where: { name: cityName } });
+    
+      if (!existingCity) {
+        await prisma.city.create({ data: { name: cityName } });
+        console.log(`Ville ajoutée : ${cityName}`);
+      } else {
+        console.log(`Ville déjà existante : ${cityName}`);
+      }
+    }
 
 }
 main()

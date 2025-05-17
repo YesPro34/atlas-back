@@ -1,10 +1,10 @@
 import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { compare } from 'bcrypt';
-import { JwtService } from '@nestjs/jwt';
+//import { JwtService } from '@nestjs/jwt';
 
 @Injectable()
 export class AuthDomainService {
-  constructor(private jwtService: JwtService) {}
+  constructor() {} //private jwtService: JwtService
 
   async validatePassword(
     plainPassword: string,
@@ -13,19 +13,19 @@ export class AuthDomainService {
     return compare(plainPassword, hashedPassword);
   }
 
-  generateToken(userId: string, role: string): string {
-    return this.jwtService.sign({ sub: userId, role });
-  }
+  // generateToken(userId: string): string {
+  //   return this.jwtService.sign({ sub: userId, role });
+  // }
 
-  calculateSessionExpiry(): Date {
-    const expiresAt = new Date();
-    expiresAt.setDate(expiresAt.getDate() + 1);
-    return expiresAt;
-  }
+  // calculateSessionExpiry(): Date {
+  //   const expiresAt = new Date();
+  //   expiresAt.setDate(expiresAt.getDate() + 1);
+  //   return expiresAt;
+  // }
 
-  validateSession(session: { expiresAt: Date } | null): void {
-    if (!session) {
-      throw new UnauthorizedException('No valid session found');
-    }
-  }
+  // validateSession(session: { expiresAt: Date } | null): void {
+  //   if (!session) {
+  //     throw new UnauthorizedException('No valid session found');
+  //   }
+  // }
 }

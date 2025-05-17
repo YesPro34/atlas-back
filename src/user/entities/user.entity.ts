@@ -1,16 +1,10 @@
-import {
-  UserStatus,
-  userRole,
-  BacOption,
-  Session,
-  Application,
-} from '@prisma/client';
+import { UserStatus, Role, BacOption, Application } from '@prisma/client';
 
 export class UserEntity {
   id: string;
   massarCode: string;
   password: string;
-  role: userRole;
+  role: Role;
   status: UserStatus;
   firstName: string;
   lastName: string;
@@ -23,7 +17,6 @@ export class UserEntity {
   svtMark?: number;
   englishMark?: number;
   philosophyMark?: number;
-  sessions?: Session[];
   applications?: Application[];
 
   constructor(partial: Partial<UserEntity>) {

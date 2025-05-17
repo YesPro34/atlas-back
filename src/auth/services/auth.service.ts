@@ -1,60 +1,94 @@
-import { Injectable, UnauthorizedException } from '@nestjs/common';
-import { AuthRepository } from '../repositories/auth.repository';
-import { AuthDomainService } from './domain/auth.domain.service';
+import { Inject, Injectable, UnauthorizedException } from '@nestjs/common';
+import { hash, compare } from 'bcrypt';
+import { JwtService } from '@nestjs/jwt';
+import { ConfigType } from '@nestjs/config';
+import { Role } from '@prisma/client';
 import { UserService } from 'src/user/services/user.service';
-import { LoginDto } from '../dto/login.dto';
+import { AuthJwtPayload } from '../types/auth-jwtPayload';
+import refreshConfig from '../config/refresh.config';
 
 @Injectable()
 export class AuthService {
   constructor(
-    private readonly authDomainService: AuthDomainService,
-    private readonly authRepository: AuthRepository,
-    private readonly userService: UserService, // Assuming you have a UserService to fetch user details
+    private readonly userService: UserService,
+    private readonly jwtService: JwtService,
+    @Inject(refreshConfig.KEY)
+    private refreshTokenConfig: ConfigType<typeof refreshConfig>,
   ) {}
 
-  async login(loginDto: LoginDto) {
-    const user = await this.userService.findByMassarCode(loginDto.massarCode);
-    if (!user) {
-      throw new UnauthorizedException('Identifiants invalides');
-    }
+  async validateLocalUser(massarCode: string, password: string) {
+    const user = await this.userService.findByMassarCode(massarCode);
+    if (!user) throw new UnauthorizedException('User not found!');
+    const isPasswordMatched = await compare(password, user.password);
+    if (!isPasswordMatched)
+      throw new UnauthorizedException('Invalid Credentials!');
 
-    if (user.status === 'INACTIVE') {
-      throw new UnauthorizedException('Votre compte est désactivé.');
-    }
+    return { id: user.id, massarCode: user.massarCode, role: user.role };
+  }
 
-    const isValidPassword = await this.authDomainService.validatePassword(
-      loginDto.password,
-      user.password,
+  async login(userId: string, massarCode: string, role: Role) {
+    const { accessToken, refreshToken } = await this.generateTokens(userId);
+    const hashedRT = await hash(refreshToken, 10);
+    await this.userService.updateHashedRefreshToken(userId, hashedRT);
+    return {
+      id: userId,
+      massarCode: massarCode,
+      role,
+      accessToken,
+      refreshToken,
+    };
+  }
+
+  async generateTokens(userId: string) {
+    const payload: AuthJwtPayload = { sub: userId };
+    const [accessToken, refreshToken] = await Promise.all([
+      this.jwtService.signAsync(payload),
+      this.jwtService.signAsync(payload, this.refreshTokenConfig),
+    ]);
+
+    return {
+      accessToken,
+      refreshToken,
+    };
+  }
+
+  async validateJwtUser(userId: string) {
+    const user = await this.userService.findUserById(userId);
+    if (!user) throw new UnauthorizedException('User not found!');
+    const currentUser = { id: user.id, role: user.role };
+    return currentUser;
+  }
+
+  async validateRefreshToken(userId: string, refreshToken: string) {
+    const user = await this.userService.findUserById(userId);
+    if (!user) throw new UnauthorizedException('User not found!');
+
+    if (!user.hashedRefreshToken) {
+      throw new UnauthorizedException('Refresh token not found!');
+    }
+    const refreshTokenMatched = await compare(
+      refreshToken,
+      user.hashedRefreshToken,
     );
 
-    if (!isValidPassword) {
-      throw new UnauthorizedException('Invalid credentials');
-    }
-
-    const token = this.authDomainService.generateToken(user.id, user.role);
-    const expiresAt = this.authDomainService.calculateSessionExpiry();
-    await this.authRepository.createSession(user.id, token, expiresAt);
-    const { password, ...safeUser } = user;
-    return { user: safeUser, token };
+    if (!refreshTokenMatched)
+      throw new UnauthorizedException('Invalid Refresh Token!');
+    return user;
   }
 
-  async refreshToken(userId: string, role: string) {
-    const session = await this.authRepository.findSessionByUserId(userId);
-    this.authDomainService.validateSession(session);
-
-    const newToken = this.authDomainService.generateToken(userId, role);
-    const expiresAt = this.authDomainService.calculateSessionExpiry();
-    if (!session) {
-      throw new UnauthorizedException('Session not found');
-    }
-
-    await this.authRepository.updateSession(session.id, newToken, expiresAt);
-
-    return { token: newToken };
+  async refreshToken(userId: string, massarCode: string) {
+    const { accessToken, refreshToken } = await this.generateTokens(userId);
+    const hashedRT = await hash(refreshToken, 10);
+    await this.userService.updateHashedRefreshToken(userId, hashedRT);
+    return {
+      id: userId,
+      massarCode: massarCode,
+      accessToken,
+      refreshToken,
+    };
   }
 
-  async logout(userId: string) {
-    await this.authRepository.deleteSessionsByUserId(userId);
-    return { message: 'Successfully logged out' };
+  async logOut(userId: string) {
+    return await this.userService.updateHashedRefreshToken(userId, null);
   }
 }

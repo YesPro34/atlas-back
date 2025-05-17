@@ -8,10 +8,15 @@ import { UserRepository } from '../repositories/user.repository';
 import { CreateUserDto } from '../dto/create-user.dto';
 import * as bcrypt from 'bcrypt';
 import { UpdateUserDto } from '../dto/update-user.dto';
+import { PrismaService } from 'src/prisma/prisma.service';
+import { BacOption } from '@prisma/client';
 
 @Injectable()
 export class UserService {
-  constructor(private readonly userRepository: UserRepository) {}
+  constructor(
+    private readonly userRepository: UserRepository,
+    private readonly prisma: PrismaService,
+  ) {}
 
   // FIND USER BY HIS MASSAR CODE
   async findByMassarCode(massarCode: string) {
@@ -47,6 +52,11 @@ export class UserService {
   async findAllUsers() {
     return await this.userRepository.findAll();
   }
+
+  // FIND ALL STUDENTS
+  async findStudents() {
+    return await this.userRepository.findStudents();
+  }
   // FIND USER BY ID
   async findUserById(id: string) {
     return await this.userRepository.findById(id);
@@ -68,6 +78,11 @@ export class UserService {
     }
   }
 
+  // FILTER SCHOOLS TO APPLT BASED ON STUDENT BAC TYPE
+  async findSchoolsByBacOption(bacOption: BacOption) {
+    return await this.userRepository.filterByBacOption(bacOption);
+  }
+
   // DELETE USER
   async deleteUser(id: string) {
     const existingUser = await this.userRepository.findById(id);
@@ -78,5 +93,16 @@ export class UserService {
       });
     }
     return await this.userRepository.delete(id);
+  }
+
+  async updateHashedRefreshToken(userId: string, hashedRT: string | null) {
+    return await this.prisma.user.update({
+      where: {
+        id: userId,
+      },
+      data: {
+        hashedRefreshToken: hashedRT,
+      },
+    });
   }
 }

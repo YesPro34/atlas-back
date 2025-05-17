@@ -8,19 +8,18 @@ import {
   Post,
   Patch,
   UploadedFile,
-  UseGuards,
   UseInterceptors,
+  Request,
 } from '@nestjs/common';
 import { CreateUserDto } from '../dto/create-user.dto';
 import { UserService } from '../services/user.service';
-import { JwtAuthGuard } from 'src/auth/guards/jwt.guard';
+// import { JwtAuthGuard } from 'src/auth/guards/jwt.guard';
 import { FileInterceptor } from '@nestjs/platform-express';
 import * as XLSX from 'xlsx';
 import { diskStorage } from 'multer';
-import { BacOption, userRole, UserStatus } from '@prisma/client';
+import { BacOption, Role, UserStatus } from '@prisma/client';
 import { File } from 'multer';
 import { UpdateUserDto } from '../dto/update-user.dto';
-import { RolesGuard } from 'src/auth/guards/roles.guard';
 import { Roles } from 'src/common/decorators/roles.decorator';
 interface ExcelRow {
   mot_de_passe: string;
@@ -40,7 +39,6 @@ interface ExcelRow {
   note_philosophie?: string;
 }
 
-@UseGuards(JwtAuthGuard, RolesGuard)
 @Roles('ADMIN')
 @Controller('user')
 export class UserController {
@@ -54,6 +52,7 @@ export class UserController {
   @Post()
   @HttpCode(201)
   createUser(@Body() createUserDto: CreateUserDto) {
+    console.log(createUserDto);
     return this.userService.createUser(createUserDto);
   }
 
@@ -69,6 +68,17 @@ export class UserController {
   @HttpCode(204)
   deleteUser(@Param('id') id: string) {
     return this.userService.deleteUser(id);
+  }
+
+  @Get('/students')
+  getAllStudents() {
+    return this.userService.findStudents();
+  }
+
+  @Get('/mySchools')
+  getSchoolsByBacOption(@Request() req) {
+    console.log(req)
+    return this.userService.findSchoolsByBacOption(req.user.bacOption);
   }
 
   @Post('upload-excel')
@@ -96,7 +106,7 @@ export class UserController {
         massarCode: String(row.massar_code),
         firstName: String(row.prenom),
         lastName: String(row.nom),
-        role: row.role as userRole,
+        role: row.role as Role,
         status: row.status as UserStatus,
         bacOption: row.option_bac as BacOption,
         city: String(row.ville),

@@ -1,4 +1,4 @@
-import { userRole, UserStatus, BacOption } from '@prisma/client';
+import { Role, UserStatus, BacOption } from '@prisma/client';
 import {
   IsString,
   IsNotEmpty,
@@ -27,8 +27,8 @@ export class CreateUserDto {
   lastName: string;
 
   @IsNotEmpty({ message: 'User role is required' })
-  @IsEnum(userRole, { message: 'Invalid user role' })
-  role: userRole;
+  @IsEnum(Role, { message: 'Invalid user role' })
+  role: Role;
 
   @IsNotEmpty({ message: 'User status is required' })
   @IsEnum(UserStatus, { message: 'Invalid user status' })

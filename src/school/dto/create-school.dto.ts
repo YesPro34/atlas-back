@@ -1,4 +1,5 @@
 import { BacOption, SchoolType } from '@prisma/client';
+import { Transform } from 'class-transformer';
 import {
   IsArray,
   IsBoolean,
@@ -10,6 +11,9 @@ import {
 export class CreateSchoolDto {
   @IsString()
   @IsNotEmpty({ message: 'School name is required' })
+  @Transform(({ value }) =>
+    typeof value === 'string' ? value.trim().toUpperCase() : value,
+  )
   name: string;
 
   @IsArray()
@@ -22,5 +26,3 @@ export class CreateSchoolDto {
   @IsBoolean()
   isOpen: boolean;
 }
-
-export class UpdateSchoolDto extends CreateSchoolDto {}

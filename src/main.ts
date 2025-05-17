@@ -1,22 +1,21 @@
 import { NestFactory, Reflector } from '@nestjs/core';
+import * as cookieParser from 'cookie-parser';
 import { AppModule } from './app.module';
 import { ValidationPipe } from '@nestjs/common';
-import { JwtAuthGuard } from './auth/guards/jwt.guard';
-import { RolesGuard } from './auth/guards/roles.guard';
+// import { LocalAuthGuard } from './auth/guards/local-auth/local-auth.guard';
+// import { JwtAuthGuard } from './auth/guards/jwt-auth/jwt-auth.guard';
+// import { RefreshAuthGuard } from './auth/guards/refresh-auth/refresh-auth.guard';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
   // Enable CORS
+  app.use(cookieParser());
+
   app.enableCors({
-    origin: true, // Allow all origins in development
-    methods: 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS',
+    origin: 'http://localhost:3000',
     credentials: true,
-    exposedHeaders: ['set-cookie'],
   });
 
-  // global guard
-  const reflector = app.get(Reflector);
-  app.useGlobalGuards(new JwtAuthGuard(), new RolesGuard(reflector));
   // global validation
   app.useGlobalPipes(
     new ValidationPipe({ whitelist: true, forbidNonWhitelisted: true }),

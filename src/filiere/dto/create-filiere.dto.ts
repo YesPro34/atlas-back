@@ -8,4 +8,4 @@ export class CreateFiliereDto {
   @IsNotEmpty({ message: 'Filière schoolId is required' })
   @IsUUID()
   schoolId: string;
-} 
+}

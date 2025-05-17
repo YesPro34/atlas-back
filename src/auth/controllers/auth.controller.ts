@@ -1,41 +1,48 @@
-import {
-  Body,
-  Controller,
-  Post,
-  UseGuards,
-  Request,
-  Get,
-} from '@nestjs/common';
-import { LoginDto } from 'src/auth/dto/login.dto';
+import { Controller, Get, Post, Request, UseGuards } from '@nestjs/common';
+import { LocalAuthGuard } from '../guards/local-auth/local-auth.guard';
+import { RefreshAuthGuard } from '../guards/refresh-auth/refresh-auth.guard';
 import { AuthService } from '../services/auth.service';
-import { JwtAuthGuard } from '../guards/jwt.guard';
-import { Public } from 'src/common/decorators/public.decorator';
+import { Public } from '../decorators/public.decorator';
+import { Roles } from '../decorators/roles.decorator';
+import { JwtAuthGuard } from '../guards/jwt-auth/jwt-auth.guard';
 
 @Controller('auth')
 export class AuthController {
-  constructor(private authService: AuthService) {}
+  constructor(private readonly authService: AuthService) {}
+  // @Post('signup')
+  // registerUser(@Body() createUserDto: CreateUserDto) {
+  //   return this.authService.registerUser(createUserDto);
+  // }
 
   @Public()
+  @UseGuards(LocalAuthGuard)
   @Post('login')
-  login(@Body() loginDto: LoginDto) {
-    return this.authService.login(loginDto);
+  login(@Request() req) {
+    return this.authService.login(
+      req.user.id,
+      req.user.massarCode,
+      req.user.role,
+    );
   }
 
-  @Get('me')
-  @UseGuards(JwtAuthGuard)
-  getCurrentUser(@Request() req) {
-    return req.user;
+  @Roles('STUDENT')
+  @Get('protected')
+  getAll(@Request() req) {
+    return {
+      messege: `Now you can access this protected API. this is your user ID: ${req.user.id}`,
+    };
   }
 
-  @Post('refresh-token')
-  @UseGuards(JwtAuthGuard)
+  @Public()
+  @UseGuards(RefreshAuthGuard)
+  @Post('refresh')
   refreshToken(@Request() req) {
-    return this.authService.refreshToken(req.user.id, req.user.role);
+    return this.authService.refreshToken(req.user.id, req.user.massarCode);
   }
 
-  @Post('logout')
   @UseGuards(JwtAuthGuard)
-  logout(@Request() req) {
-    return this.authService.logout(req.user.id);
+  @Post('logout')
+  logOut(@Request() req) {
+    return this.authService.logOut(req.user.id);
   }
 }

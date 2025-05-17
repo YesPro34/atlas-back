@@ -1,23 +1,43 @@
 import { Module } from '@nestjs/common';
+import { PrismaService } from 'src/prisma/prisma.service';
+import { LocalStrategy } from './strategies/local.strategy';
+import { JwtModule } from '@nestjs/jwt';
+import jwtConfig from './config/jwt.config';
+import { ConfigModule } from '@nestjs/config';
+import { JwtStrategy } from './strategies/jwt.strategy';
+import refreshConfig from './config/refresh.config';
+import { APP_GUARD } from '@nestjs/core';
+import { JwtAuthGuard } from './guards/jwt-auth/jwt-auth.guard';
 import { AuthController } from './controllers/auth.controller';
 import { AuthService } from './services/auth.service';
-import { JwtStrategy } from './strategies/jwt.strategy';
-import { UserModule } from 'src/user/user.module';
-import { JwtModule } from '@nestjs/jwt';
-import { AuthRepository } from './repositories/auth.repository';
-import { AuthDomainService } from './services/domain/auth.domain.service';
-import { PrismaModule } from 'src/prisma/prisma.module';
+import { UserService } from 'src/user/services/user.service';
+import { RefreshStrategy } from './strategies/refresh-token.strategy';
+import { RolesGuard } from './roles/roles.guard';
+import { UserRepository } from 'src/user/repositories/user.repository';
 
 @Module({
   imports: [
-    UserModule,
-    PrismaModule,
-    JwtModule.register({
-      secret: process.env.JWT_SECRET,
-      signOptions: { expiresIn: '1d' },
-    }),
+    JwtModule.registerAsync(jwtConfig.asProvider()),
+    ConfigModule.forFeature(jwtConfig),
+    ConfigModule.forFeature(refreshConfig),
   ],
   controllers: [AuthController],
-  providers: [AuthService, AuthDomainService, JwtStrategy, AuthRepository],
+  providers: [
+    AuthService,
+    UserService,
+    UserRepository,
+    PrismaService,
+    LocalStrategy,
+    JwtStrategy,
+    RefreshStrategy,
+    {
+      provide: APP_GUARD,
+      useClass: JwtAuthGuard, //@UseGuard(JwtAuthGuard)
+    },
+    {
+      provide: APP_GUARD,
+      useClass: RolesGuard, //@UseGuard(Roles)
+    },
+  ],
 })
 export class AuthModule {}

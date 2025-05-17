@@ -1,44 +1,31 @@
-// src/auth/jwt.strategy.ts
-import { Injectable, UnauthorizedException } from '@nestjs/common';
+import { Inject, Injectable } from '@nestjs/common';
 import { PassportStrategy } from '@nestjs/passport';
 import { ExtractJwt, Strategy } from 'passport-jwt';
-import { ConfigService } from '@nestjs/config';
-import { PrismaService } from 'src/prisma/prisma.service';
+import jwtConfig from '../config/jwt.config';
+import { ConfigType } from '@nestjs/config';
+import { AuthService } from '../services/auth.service';
+import { AuthJwtPayload } from '../types/auth-jwtPayload';
 
 @Injectable()
 export class JwtStrategy extends PassportStrategy(Strategy) {
   constructor(
-    private configService: ConfigService,
-    private prisma: PrismaService,
+    @Inject(jwtConfig.KEY)
+    private jwtConfiguration: ConfigType<typeof jwtConfig>,
+    private authService: AuthService,
   ) {
+    const jwtSecret = jwtConfiguration.secret;
+    if (!jwtSecret) {
+      throw new Error('JWT secret is not defined');
+    }
     super({
       jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
-      secretOrKey: process.env.JWT_SECRET as string,
+      secretOrKey: jwtSecret,
+      ignoreExpiration: false,
     });
   }
 
-  async validate(payload: { sub: string }) {
-    const session = await this.prisma.session.findFirst({
-      where: {
-        userId: payload.sub,
-        expiresAt: {
-          gt: new Date(),
-        },
-      },
-    });
-
-    if (!session) {
-      throw new UnauthorizedException('Invalid or expired session');
-    }
-
-    const user = await this.prisma.user.findUnique({
-      where: { id: payload.sub },
-    });
-
-    if (!user) {
-      throw new UnauthorizedException();
-    }
-
-    return user;
+  validate(payload: AuthJwtPayload) {
+    const userId = String(payload.sub);
+    return this.authService.validateJwtUser(userId);
   }
 }

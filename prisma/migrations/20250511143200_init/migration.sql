@@ -1,11 +1,8 @@
 -- CreateEnum
-CREATE TYPE "userRole" AS ENUM ('STUDENT', 'ADMIN');
+CREATE TYPE "Role" AS ENUM ('STUDENT', 'ADMIN');
 
 -- CreateEnum
 CREATE TYPE "BacOption" AS ENUM ('PC', 'SVT', 'SMA', 'ECO', 'SMB', 'STE', 'STM', 'SGC');
-
--- CreateEnum
-CREATE TYPE "TokenStatus" AS ENUM ('PENDING', 'DONE');
 
 -- CreateEnum
 CREATE TYPE "UserStatus" AS ENUM ('ACTIVE', 'INACTIVE');
@@ -21,7 +18,8 @@ CREATE TABLE "utilisateurs" (
     "id" TEXT NOT NULL,
     "massar_code" TEXT NOT NULL,
     "mot_de_passe" TEXT NOT NULL,
-    "role" "userRole" NOT NULL,
+    "role" "Role" NOT NULL,
+    "hashedRefreshToken" TEXT,
     "etat" "UserStatus" NOT NULL DEFAULT 'INACTIVE',
     "prenom" TEXT NOT NULL,
     "nom" TEXT NOT NULL,
@@ -36,29 +34,6 @@ CREATE TABLE "utilisateurs" (
     "note_philosophie" DOUBLE PRECISION,
 
     CONSTRAINT "utilisateurs_pkey" PRIMARY KEY ("id")
-);
-
--- CreateTable
-CREATE TABLE "session" (
-    "id" TEXT NOT NULL,
-    "token" TEXT NOT NULL,
-    "date_creation" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "date_expiration" TIMESTAMP(3) NOT NULL,
-    "date_modification" TIMESTAMP(3) NOT NULL,
-    "utilisateur_id" TEXT NOT NULL,
-
-    CONSTRAINT "session_pkey" PRIMARY KEY ("id")
-);
-
--- CreateTable
-CREATE TABLE "token_verification" (
-    "id" TEXT NOT NULL,
-    "email" TEXT NOT NULL,
-    "date_creation" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "date_expiration" TIMESTAMP(3),
-    "etat" "TokenStatus" NOT NULL DEFAULT 'PENDING',
-
-    CONSTRAINT "token_verification_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
@@ -117,16 +92,10 @@ CREATE TABLE "applications" (
 CREATE UNIQUE INDEX "utilisateurs_massar_code_key" ON "utilisateurs"("massar_code");
 
 -- CreateIndex
-CREATE UNIQUE INDEX "session_token_key" ON "session"("token");
-
--- CreateIndex
 CREATE UNIQUE INDEX "ville_jointure_ecole_ville_id_ecole_id_key" ON "ville_jointure_ecole"("ville_id", "ecole_id");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "applications_utilisateur_id_groupe_ecole_rang_key" ON "applications"("utilisateur_id", "groupe_ecole", "rang");
-
--- AddForeignKey
-ALTER TABLE "session" ADD CONSTRAINT "session_utilisateur_id_fkey" FOREIGN KEY ("utilisateur_id") REFERENCES "utilisateurs"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "ville_jointure_ecole" ADD CONSTRAINT "ville_jointure_ecole_ville_id_fkey" FOREIGN KEY ("ville_id") REFERENCES "City"("id") ON DELETE RESTRICT ON UPDATE CASCADE;

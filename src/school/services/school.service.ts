@@ -1,6 +1,13 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  ConflictException,
+  HttpStatus,
+  Injectable,
+  InternalServerErrorException,
+  NotFoundException,
+} from '@nestjs/common';
 import { SchoolRepository } from '../repositories/school.repository';
-import { CreateSchoolDto, UpdateSchoolDto } from '../dto/create-school.dto';
+import { CreateSchoolDto } from '../dto/create-school.dto';
+import { UpdateSchoolDto } from '../dto/update-school.dto';
 
 @Injectable()
 @Injectable()
@@ -8,11 +15,21 @@ export class SchoolService {
   constructor(private readonly schoolRepo: SchoolRepository) {}
 
   async create(createSchoolDto: CreateSchoolDto) {
-    return this.schoolRepo.create(createSchoolDto);
+    const existingSchool = await this.schoolRepo.findByName(
+      createSchoolDto.name,
+    );
+    if (existingSchool) {
+      return new ConflictException('the School is already exist');
+    }
+    try {
+      await this.schoolRepo.create(createSchoolDto);
+    } catch (error: any) {
+      throw new InternalServerErrorException('create school Faild ');
+    }
   }
 
   async findAll() {
-    return this.schoolRepo.findAll();
+    return await this.schoolRepo.findAll();
   }
 
   async findOne(id: string) {
@@ -22,12 +39,16 @@ export class SchoolService {
   }
 
   async update(id: string, updateSchoolDto: UpdateSchoolDto) {
-    await this.findOne(id); // check existence
-    return this.schoolRepo.update(id, updateSchoolDto);
+    const school = await this.schoolRepo.findOne(id);
+    if (!school) throw new NotFoundException('School not found');
+    try {
+      return await this.schoolRepo.update(id, updateSchoolDto);
+    } catch (error: any) {
+      throw new InternalServerErrorException('update school  Faild ');
+    }
   }
 
   async remove(id: string) {
-    await this.findOne(id);
-    return this.schoolRepo.remove(id);
+    return await this.schoolRepo.remove(id);
   }
 }

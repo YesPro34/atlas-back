@@ -1,4 +1,4 @@
-import { userRole, UserStatus, BacOption } from '@prisma/client';
+import { Role, UserStatus, BacOption } from '@prisma/client';
 import {
   IsString,
   IsEnum,
@@ -6,9 +6,14 @@ import {
   IsNumber,
   Min,
   Max,
+  IsUUID,
 } from 'class-validator';
 
 export class UpdateUserDto {
+  @IsUUID()
+  @IsOptional()
+  id: string;
+
   @IsString()
   @IsOptional()
   firstName: string;
@@ -17,9 +22,13 @@ export class UpdateUserDto {
   @IsOptional()
   lastName: string;
 
+  @IsString()
   @IsOptional()
-  @IsEnum(userRole, { message: 'Invalid user role' })
-  role: userRole;
+  massarCode: string;
+
+  @IsOptional()
+  @IsEnum(Role, { message: 'Invalid user role' })
+  role: Role;
 
   @IsOptional()
   @IsEnum(UserStatus, { message: 'Invalid user status' })

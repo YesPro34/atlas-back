@@ -11,7 +11,8 @@ model User {
   id              String          @id @default(uuid())
   massarCode      String          @unique() @map("massar_code")
   password        String          @map("mot_de_passe")
-  role            userRole        @map("role")
+  role            Role            @map("role")
+  hashedRefreshToken  String?
   status          UserStatus      @default(INACTIVE) @map("etat")
   firstName       String          @map("prenom")
   lastName        String          @map("nom")
@@ -24,32 +25,9 @@ model User {
   svtMark         Float?          @map("note_svt")
   englishMark     Float?          @map("note_anglais")
   philosophyMark  Float?          @map("note_philosophie")
-  sessions        Session[]
   applications    Application[]
 
   @@map("utilisateurs")
-}
-
-model Session {
-  id        String   @id @default(uuid())
-  token     String   @unique
-  createdAt DateTime @default(now()) @map("date_creation")
-  expiresAt DateTime @map("date_expiration")
-  updatedAt DateTime @updatedAt @map("date_modification")
-  userId    String   @map("utilisateur_id")
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  @@map("session")
-}
-
-model TokenVerification {
-  id        String      @id @default(uuid())
-  email     String      @map("email")
-  createdAt DateTime    @default(now()) @map("date_creation")
-  expireAt  DateTime?   @map("date_expiration")
-  status    TokenStatus @default(PENDING) @map("etat")
-
-  @@map("token_verification")
 }
 
 model City {
@@ -111,7 +89,7 @@ model Application {
   @@unique([userId, programGroup, rank])
 }
 
-enum userRole {
+enum Role {
   STUDENT
   ADMIN
 }
@@ -127,10 +105,6 @@ enum BacOption {
   SGC
 }
 
-enum TokenStatus {
-  PENDING
-  DONE
-}
 
 enum UserStatus {
   ACTIVE
