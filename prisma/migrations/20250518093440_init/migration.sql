@@ -11,7 +11,7 @@ CREATE TYPE "UserStatus" AS ENUM ('ACTIVE', 'INACTIVE');
 CREATE TYPE "ApplicationStatus" AS ENUM ('PENDING', 'REGISTERED');
 
 -- CreateEnum
-CREATE TYPE "SchoolType" AS ENUM ('ENSA', 'EST', 'ENCG', 'ENSAM', 'ISPITS', 'ISSS', 'ISPM', 'MEDICAL');
+CREATE TYPE "SchoolType" AS ENUM ('ENSA', 'EST', 'ENCG', 'ENSAM', 'ISPITS', 'ISSS', 'ISPM', 'MEDICAL', 'FST');
 
 -- CreateTable
 CREATE TABLE "utilisateurs" (
@@ -37,11 +37,11 @@ CREATE TABLE "utilisateurs" (
 );
 
 -- CreateTable
-CREATE TABLE "City" (
+CREATE TABLE "villes" (
     "id" TEXT NOT NULL,
     "nom" TEXT NOT NULL,
 
-    CONSTRAINT "City_pkey" PRIMARY KEY ("id")
+    CONSTRAINT "villes_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
@@ -74,18 +74,36 @@ CREATE TABLE "filiere" (
 );
 
 -- CreateTable
+CREATE TABLE "specialite" (
+    "id" TEXT NOT NULL,
+    "nom" TEXT NOT NULL,
+    "type" "SchoolType" NOT NULL,
+
+    CONSTRAINT "specialite_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
 CREATE TABLE "applications" (
     "id" TEXT NOT NULL,
     "utilisateur_id" TEXT NOT NULL,
-    "city_school_id" TEXT,
-    "filiere_id" TEXT,
     "groupe_ecole" "SchoolType" NOT NULL,
-    "rang" INTEGER,
     "status" "ApplicationStatus" NOT NULL DEFAULT 'PENDING',
     "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updated_at" TIMESTAMP(3) NOT NULL,
 
     CONSTRAINT "applications_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "choix_candidature" (
+    "id" TEXT NOT NULL,
+    "candidature_id" TEXT NOT NULL,
+    "rang" INTEGER NOT NULL,
+    "city_school_id" TEXT,
+    "filiere_id" TEXT,
+    "specialite_id" TEXT,
+
+    CONSTRAINT "choix_candidature_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateIndex
@@ -95,10 +113,13 @@ CREATE UNIQUE INDEX "utilisateurs_massar_code_key" ON "utilisateurs"("massar_cod
 CREATE UNIQUE INDEX "ville_jointure_ecole_ville_id_ecole_id_key" ON "ville_jointure_ecole"("ville_id", "ecole_id");
 
 -- CreateIndex
-CREATE UNIQUE INDEX "applications_utilisateur_id_groupe_ecole_rang_key" ON "applications"("utilisateur_id", "groupe_ecole", "rang");
+CREATE UNIQUE INDEX "applications_utilisateur_id_groupe_ecole_key" ON "applications"("utilisateur_id", "groupe_ecole");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "choix_candidature_candidature_id_rang_key" ON "choix_candidature"("candidature_id", "rang");
 
 -- AddForeignKey
-ALTER TABLE "ville_jointure_ecole" ADD CONSTRAINT "ville_jointure_ecole_ville_id_fkey" FOREIGN KEY ("ville_id") REFERENCES "City"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE "ville_jointure_ecole" ADD CONSTRAINT "ville_jointure_ecole_ville_id_fkey" FOREIGN KEY ("ville_id") REFERENCES "villes"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "ville_jointure_ecole" ADD CONSTRAINT "ville_jointure_ecole_ecole_id_fkey" FOREIGN KEY ("ecole_id") REFERENCES "ecoles"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
@@ -110,7 +131,13 @@ ALTER TABLE "filiere" ADD CONSTRAINT "filiere_ecole_id_fkey" FOREIGN KEY ("ecole
 ALTER TABLE "applications" ADD CONSTRAINT "applications_utilisateur_id_fkey" FOREIGN KEY ("utilisateur_id") REFERENCES "utilisateurs"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "applications" ADD CONSTRAINT "applications_city_school_id_fkey" FOREIGN KEY ("city_school_id") REFERENCES "ville_jointure_ecole"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+ALTER TABLE "choix_candidature" ADD CONSTRAINT "choix_candidature_candidature_id_fkey" FOREIGN KEY ("candidature_id") REFERENCES "applications"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "applications" ADD CONSTRAINT "applications_filiere_id_fkey" FOREIGN KEY ("filiere_id") REFERENCES "filiere"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+ALTER TABLE "choix_candidature" ADD CONSTRAINT "choix_candidature_city_school_id_fkey" FOREIGN KEY ("city_school_id") REFERENCES "ville_jointure_ecole"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "choix_candidature" ADD CONSTRAINT "choix_candidature_filiere_id_fkey" FOREIGN KEY ("filiere_id") REFERENCES "filiere"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "choix_candidature" ADD CONSTRAINT "choix_candidature_specialite_id_fkey" FOREIGN KEY ("specialite_id") REFERENCES "specialite"("id") ON DELETE SET NULL ON UPDATE CASCADE;

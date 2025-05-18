@@ -74,12 +74,4 @@ export class UserRepository {
     return await this.prisma.user.delete({ where: { id } });
   }
 
-  async filterByBacOption(bacOption: BacOption) {
-    const where: Prisma.SchoolWhereInput = {
-      bacOptionsAllowed: {
-        has: bacOption,
-      },
-    };
-    return await this.prisma.school.findMany({ where });
-  }
 }

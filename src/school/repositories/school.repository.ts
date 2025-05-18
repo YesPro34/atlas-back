@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { CreateSchoolDto } from '../dto/create-school.dto';
 import { UpdateSchoolDto } from '../dto/update-school.dto';
+import { BacOption } from '@prisma/client';
 
 @Injectable()
 export class SchoolRepository {
@@ -30,4 +31,22 @@ export class SchoolRepository {
   async remove(id: string) {
     await this.prisma.school.delete({ where: { id } });
   }
+
+  async filterByBacOption(bacOption: string) {
+    // Assuming BacOption is imported or accessible here
+    // Convert string to proper enum value
+    const bacOptionEnum = BacOption[bacOption as keyof typeof BacOption];
+    if (!bacOptionEnum) {
+      throw new Error(`Invalid BAC option: ${bacOption}`);
+    }
+    return await this.prisma.school.findMany({
+      where: {
+        bacOptionsAllowed: {
+          has: bacOptionEnum,
+        },
+        isOpen: true,
+      }
+    });
+  }
+
 }

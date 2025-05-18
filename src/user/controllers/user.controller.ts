@@ -39,16 +39,17 @@ interface ExcelRow {
   note_philosophie?: string;
 }
 
-@Roles('ADMIN')
 @Controller('user')
 export class UserController {
   constructor(private readonly userService: UserService) {}
-
+  
+  @Roles('ADMIN')
   @Get()
   findAllUsers() {
     return this.userService.findAllUsers();
   }
 
+  @Roles('ADMIN')
   @Post()
   @HttpCode(201)
   createUser(@Body() createUserDto: CreateUserDto) {
@@ -56,6 +57,7 @@ export class UserController {
     return this.userService.createUser(createUserDto);
   }
 
+  @Roles('ADMIN')
   @Patch(':id')
   async updateUser(
     @Param('id') id: string,
@@ -64,22 +66,23 @@ export class UserController {
     return this.userService.updateUser(id, updateUserDto);
   }
 
+  @Roles('ADMIN')
   @Delete(':id')
   @HttpCode(204)
   deleteUser(@Param('id') id: string) {
     return this.userService.deleteUser(id);
   }
 
+  @Roles('ADMIN')
   @Get('/students')
   getAllStudents() {
     return this.userService.findStudents();
   }
-
-  @Get('/mySchools')
-  getSchoolsByBacOption(@Request() req) {
-    console.log(req)
-    return this.userService.findSchoolsByBacOption(req.user.bacOption);
-  }
+  @Roles('ADMIN','STUDENT')
+  @Get('/mySchools/:bacOption')
+  getSchoolsByBacOption(@Param('bacOption') bacOption: string) {
+    return this.userService.findSchoolsByBacOption(bacOption);
+}
 
   @Post('upload-excel')
   @HttpCode(201)

@@ -1,5 +1,5 @@
 import * as bcrypt from 'bcrypt';
-import { PrismaClient } from '@prisma/client';
+import { BacOption, PrismaClient, Role, UserStatus } from '@prisma/client';
 
 const prisma = new PrismaClient();
 
@@ -8,9 +8,9 @@ const DEFAULT_ADMIN = {
     massarCode: process.env.ADMIN_MASSAR_CODE as string,
     firstName: "super",
     lastName: "admin",
-    role: "ADMIN",
-    status: "ACTIVE",
-    bacOption: "PC",
+    role: "ADMIN" as Role,
+    status: "ACTIVE" as UserStatus,
+    bacOption: "PC" as BacOption,
     city: "Agadir",
     nationalMark: 0,
     generalMark: 0,
@@ -19,7 +19,7 @@ const DEFAULT_ADMIN = {
     svtMark: 0,
     englishMark: 0,
     philosophyMark: 0
-} as const;
+};
 
 // Cities seeding
 const cities = [

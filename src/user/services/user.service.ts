@@ -10,11 +10,13 @@ import * as bcrypt from 'bcrypt';
 import { UpdateUserDto } from '../dto/update-user.dto';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { BacOption } from '@prisma/client';
+import { SchoolRepository } from 'src/school/repositories/school.repository';
 
 @Injectable()
 export class UserService {
   constructor(
     private readonly userRepository: UserRepository,
+    private readonly schoolRepository: SchoolRepository,
     private readonly prisma: PrismaService,
   ) {}
 
@@ -79,8 +81,8 @@ export class UserService {
   }
 
   // FILTER SCHOOLS TO APPLT BASED ON STUDENT BAC TYPE
-  async findSchoolsByBacOption(bacOption: BacOption) {
-    return await this.userRepository.filterByBacOption(bacOption);
+  async findSchoolsByBacOption(bacOption: string) {
+    return await this.schoolRepository.filterByBacOption(bacOption);
   }
 
   // DELETE USER

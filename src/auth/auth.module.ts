@@ -14,6 +14,7 @@ import { UserService } from 'src/user/services/user.service';
 import { RefreshStrategy } from './strategies/refresh-token.strategy';
 import { RolesGuard } from './roles/roles.guard';
 import { UserRepository } from 'src/user/repositories/user.repository';
+import { SchoolRepository } from 'src/school/repositories/school.repository';
 
 @Module({
   imports: [
@@ -30,6 +31,7 @@ import { UserRepository } from 'src/user/repositories/user.repository';
     LocalStrategy,
     JwtStrategy,
     RefreshStrategy,
+    SchoolRepository,
     {
       provide: APP_GUARD,
       useClass: JwtAuthGuard, //@UseGuard(JwtAuthGuard)

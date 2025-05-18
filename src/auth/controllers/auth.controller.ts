@@ -22,6 +22,7 @@ export class AuthController {
       req.user.id,
       req.user.massarCode,
       req.user.role,
+      req.user.bacOption,
     );
   }
 

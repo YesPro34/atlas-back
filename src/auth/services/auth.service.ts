@@ -2,7 +2,7 @@ import { Inject, Injectable, UnauthorizedException } from '@nestjs/common';
 import { hash, compare } from 'bcrypt';
 import { JwtService } from '@nestjs/jwt';
 import { ConfigType } from '@nestjs/config';
-import { Role } from '@prisma/client';
+import { BacOption, Role } from '@prisma/client';
 import { UserService } from 'src/user/services/user.service';
 import { AuthJwtPayload } from '../types/auth-jwtPayload';
 import refreshConfig from '../config/refresh.config';
@@ -23,10 +23,10 @@ export class AuthService {
     if (!isPasswordMatched)
       throw new UnauthorizedException('Invalid Credentials!');
 
-    return { id: user.id, massarCode: user.massarCode, role: user.role };
+    return { id: user.id, massarCode: user.massarCode, role: user.role, bacOption: user.bacOption };
   }
 
-  async login(userId: string, massarCode: string, role: Role) {
+  async login(userId: string, massarCode: string, role: Role, bacOption: BacOption) {
     const { accessToken, refreshToken } = await this.generateTokens(userId);
     const hashedRT = await hash(refreshToken, 10);
     await this.userService.updateHashedRefreshToken(userId, hashedRT);
@@ -34,6 +34,7 @@ export class AuthService {
       id: userId,
       massarCode: massarCode,
       role,
+      bacOption,
       accessToken,
       refreshToken,
     };
