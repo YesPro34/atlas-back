@@ -4,6 +4,7 @@ import {
   Delete,
   Get,
   HttpCode,
+  HttpException,
   HttpStatus,
   Param,
   Patch,
@@ -14,17 +15,18 @@ import {
 import { SchoolService } from '../services/school.service';
 import { CreateSchoolDto } from '../dto/create-school.dto';
 import { FileInterceptor } from '@nestjs/platform-express';
-import { File } from 'multer';
 import * as XLSX from 'xlsx';
 import { diskStorage } from 'multer';
-import { BacOption, SchoolType } from '@prisma/client';
+import { SchoolType } from '@prisma/client';
 import { UpdateSchoolDto } from '../dto/update-school.dto';
 // import { JwtAuthGuard } from 'src/auth/guards/jwt.guard';
+// Define the expected Excel row structure
 interface ExcelRow {
   name: string;
   type: SchoolType;
-  bacOptionsAllowed: BacOption[];
   isOpen: boolean;
+  bacOptionsAllowed: string | string[];
+  cities: string | string[];
 }
 // @UseGuards(JwtAuthGuard)
 @Controller('school')
@@ -73,42 +75,57 @@ export class SchoolController {
     }),
   )
   async uploadSchoolsFromExcel(@UploadedFile() file: File.Multer.File) {
+    // Read the Excel file
     const workbook = XLSX.readFile(file.path);
     const sheet = workbook.Sheets[workbook.SheetNames[0]];
     const rows = XLSX.utils.sheet_to_json(sheet);
-    const results: { school: string; status: string; reason?: string }[] = [];
-    for (const row of rows as ExcelRow[]) {
-      const rawOptions = Array.isArray(row.bacOptionsAllowed)
-        ? row.bacOptionsAllowed
-        : String(row.bacOptionsAllowed || '')
-            .split(',')
-            .map((opt) => opt.trim().toUpperCase());
 
-      const validBacOptions = rawOptions.filter((opt) =>
-        Object.values(BacOption).includes(opt as BacOption),
-      );
+    console.log('Rows:', rows);
 
-      const createSchoolDto: CreateSchoolDto = {
-        name: String(row.name).trim().toUpperCase(),
-        type: row.type,
-        bacOptionsAllowed: validBacOptions as BacOption[],
-        isOpen: Boolean(row.isOpen),
-      };
-      try {
-        await this.schoolService.create(createSchoolDto);
-        results.push({
-          school: createSchoolDto.name,
-          status: 'Created',
-        });
-      } catch (error) {
-        results.push({
-          school: createSchoolDto.name,
-          status: 'Error',
-          reason: error?.response?.message || error.message,
-        });
-      }
-    }
+    // const results: { school: string; status: string; reason?: string }[] = [];
 
-    return { summary: results };
+    // // Process each row in the Excel file
+    // for (const row of rows as ExcelRow[]) {
+    //   // try {
+    //   // Parse bac options from the Excel
+    //   const rawBacOptions = Array.isArray(row.bacOptionsAllowed)
+    //     ? row.bacOptionsAllowed
+    //     : String(row.bacOptionsAllowed || '')
+    //         .split(',')
+    //         .map((opt) => opt.trim());
+
+    //   // Parse cities from the Excel
+    //   const rawCities = Array.isArray(row.cities)
+    //     ? row.cities
+    //     : String(row.cities || '')
+    //         .split(',')
+    //         .map((city) => city.trim());
+
+      // Create the school with related data
+      //     const createdSchool = await this.schoolService.createWithRelations({
+      //       schoolData: {
+      //         name: String(row.name).trim().toUpperCase(),
+      //         type: row.type,
+      //         isOpen: Boolean(row.isOpen),
+      //       },
+      //       bacOptionNames: rawBacOptions,
+      //       cityNames: rawCities,
+      //     });
+
+      //     results.push({
+      //       school: createdSchool.name,
+      //       status: 'Created',
+      //     });
+      //   } catch (error) {
+      //     results.push({
+      //       school: String(row.name),
+      //       status: 'Error',
+      //       reason: error?.response?.message || error.message,
+      //     });
+      //   }
+      // }
+
+      // return { summary: results };
+    //}
   }
 }

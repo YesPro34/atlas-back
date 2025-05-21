@@ -3,6 +3,7 @@ import { PrismaService } from 'src/prisma/prisma.service';
 import { CreateSchoolDto } from '../dto/create-school.dto';
 import { UpdateSchoolDto } from '../dto/update-school.dto';
 import { BacOption } from '@prisma/client';
+import { BacOptionEntity } from 'src/bac-option/bacOption.entity';
 
 @Injectable()
 export class SchoolRepository {
@@ -32,12 +33,12 @@ export class SchoolRepository {
     await this.prisma.school.delete({ where: { id } });
   }
 
-  async filterByBacOption(bacOption: string) {
-    // Assuming BacOption is imported or accessible here
-    // Convert string to proper enum value
-    const bacOptionEnum = BacOption[bacOption as keyof typeof BacOption];
+  async filterByBacOption(bacOption: BacOptionEntity) {
+    // Assuming BacOptionEntity has a 'name' property that matches BacOption enum keys
+    const bacOptionKey = (bacOption as any).name as keyof typeof BacOption;
+    const bacOptionEnum = BacOption[bacOptionKey];
     if (!bacOptionEnum) {
-      throw new Error(`Invalid BAC option: ${bacOption}`);
+      throw new Error(`Invalid BAC option: ${JSON.stringify(bacOption)}`);
     }
     return await this.prisma.school.findMany({
       where: {
@@ -45,8 +46,7 @@ export class SchoolRepository {
           has: bacOptionEnum,
         },
         isOpen: true,
-      }
+      },
     });
   }
-
 }

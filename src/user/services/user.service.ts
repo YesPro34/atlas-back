@@ -107,4 +107,15 @@ export class UserService {
       },
     });
   }
+
+  async findBacOptionByUserId(userId: string) { 
+    const user = await this.prisma.user.findUnique({
+      where: { id: userId },
+      select: { bacOption: true },
+    });
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+    return user.bacOption;
+  }
 }

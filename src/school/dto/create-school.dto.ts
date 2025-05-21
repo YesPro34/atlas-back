@@ -5,8 +5,11 @@ import {
   IsBoolean,
   IsEnum,
   IsNotEmpty,
+  IsOptional,
   IsString,
+  IsUUID,
 } from 'class-validator';
+import { FiliereEntity } from 'src/filiere/entities/filiere.entity';
 
 export class CreateSchoolDto {
   @IsString()

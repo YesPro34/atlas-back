@@ -19,14 +19,26 @@ export class AuthService {
   async validateLocalUser(massarCode: string, password: string) {
     const user = await this.userService.findByMassarCode(massarCode);
     if (!user) throw new UnauthorizedException('User not found!');
+    const studentBacOption = await this.userService.findBacOptionByUserId(user.id);
+    if (!studentBacOption) throw new UnauthorizedException('Bac option not found!');
     const isPasswordMatched = await compare(password, user.password);
     if (!isPasswordMatched)
       throw new UnauthorizedException('Invalid Credentials!');
 
-    return { id: user.id, massarCode: user.massarCode, role: user.role, bacOption: user.bacOption };
+    return {
+      id: user.id,
+      massarCode: user.massarCode,
+      role: user.role,
+      bacOption: studentBacOption,
+    };
   }
 
-  async login(userId: string, massarCode: string, role: Role, bacOption: BacOption) {
+  async login(
+    userId: string,
+    massarCode: string,
+    role: Role,
+    bacOption: BacOption,
+  ) {
     const { accessToken, refreshToken } = await this.generateTokens(userId);
     const hashedRT = await hash(refreshToken, 10);
     await this.userService.updateHashedRefreshToken(userId, hashedRT);

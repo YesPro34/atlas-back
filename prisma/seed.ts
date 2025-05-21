@@ -1,16 +1,66 @@
 import * as bcrypt from 'bcrypt';
-import { BacOption, PrismaClient, Role, UserStatus } from '@prisma/client';
+import {PrismaClient, Role, UserStatus } from '@prisma/client';
 
 const prisma = new PrismaClient();
 
-const DEFAULT_ADMIN = {
+
+
+// Cities seeding
+const cities = [
+  // Unique cities from the original list
+  "Casablanca", "Rabat", "Fès", "Marrakech", "Agadir", "Tanger", "Oujda",
+  "Meknès", "Tétouan", "El Jadida", "Nador", "Kenitra", "Béni Mellal",
+  "Khouribga", "Settat", "Safi", "Taza", "Mohammedia", "Errachidia", "Laâyoune",
+  "Guelmim", "Ouarzazate", "Taroudant", "Azrou", "Larache", "Al Hoceïma",
+  "Ksar El Kebir", "Berkane", "Taourirt", "Midelt", "Ifrane", "Oued Zem",
+  "Tan-Tan", "Fquih Ben Salah", "Temara", "Tiflet", "Salé", "Sidi Kacem",
+  "Sidi Slimane", "Zagora", "Essaouira", "Tinghir", "Youssoufia", "Jerada",
+  "Dakhla", "Boujdour", "Sidi Bennour", "Benslimane", "Aït Melloul", "Skhirat",
+  "Berchid", "Nouaceur", "Khemisset", "Khenifra", "Beni Ansar", "Tiznit",
+  "Sefrou", "Sidi Ifni", "Moulay Yacoub", "Sidi Rahal", "Ait Ourir", "Bouskoura",
+  "Moulay Idriss", "Tafraout", "Sidi Ali", "Ait Baha", "Ait Ishaq", "Ait Hamou",
+  "Ait Bouguemez", "Ait Bouadou", "Ait Boufrah", "Ait Bouhya",
+  "Chefchaouen", "Martil", "Fnideq", "Guercif", "Souk El Arbaa","Sidi Yahya El Gharb",
+  "Sidi Taibi", "Sidi Harazem", "Sidi Allal Tazi", "Sidi Bettache",
+  "Sidi El Mokhtar", "Sidi Hajjaj", "Sidi Slimane", "Echcharraa",
+  "Sidi Yahya Zaer", "Akhfenir", "Bouarfa", "Boulemane", "Demnate", "El Hajeb",
+  "Figuig", "Imzouren", "Jorf El Melha", "Kalaat Mgouna",
+  "Kelaat Sraghna", "Oulad Teima", "Oulad Tayeb", "Ouazzane",
+  "Smara", "Souk Sebt Oulad Nemma", "Tahla", "Taliouine", "Tamesna", "Tarfaya",
+  "Tata", "Taounate", "Tichka", "Zemmour", "Zerkten"
+];
+
+
+
+// BacOptions seeding
+  const bacOptions = ["PC", "SVT", "SMA", "SMB", "STE", "STM", "ECO", "SGC"];  
+
+
+async function main() {
+
+    // create BacOptions in the database
+  for (const option of bacOptions) {
+    const existingOption = await prisma.bacOption.findUnique({ where: { name: option } });
+    if (!existingOption) {
+      await prisma.bacOption.create({
+        data: { name: option },
+      });
+      console.log(`BacOption créé : ${option}`);
+    } else {
+      console.log(`BacOption déjà existant : ${option}`);
+    }
+  }
+
+  const bacOption = await prisma.bacOption.findFirst({where : { name: "PC" }});
+
+  const DEFAULT_ADMIN = {
     password: process.env.ADMIN_PASSWORD as string,
     massarCode: process.env.ADMIN_MASSAR_CODE as string,
     firstName: "super",
     lastName: "admin",
     role: "ADMIN" as Role,
     status: "ACTIVE" as UserStatus,
-    bacOption: "PC" as BacOption,
+    bacOptionId: bacOption?.id,
     city: "Agadir",
     nationalMark: 0,
     generalMark: 0,
@@ -20,21 +70,6 @@ const DEFAULT_ADMIN = {
     englishMark: 0,
     philosophyMark: 0
 };
-
-// Cities seeding
-const cities = [
-  "Casablanca", "Rabat", "Fès", "Marrakech", "Agadir", "Tanger", "Oujda",
-  "Meknès", "Tétouan", "El Jadida", "Nador", "Kenitra", "Béni Mellal",
-  "Khouribga", "Settat", "Safi", "Taza", "Mohammedia", "Errachidia", "Laâyoune",
-  "Guelmim", "Ouarzazate", "Taroudant", "Azrou", "Larache", "Al Hoceïma",
-  "Ksar El Kebir", "Berkane", "Taourirt", "Midelt", "Ifrane", "Oued Zem",
-  "Tan-Tan", "Fquih Ben Salah", "Temara", "Tiflet", "Salé", "Sidi Kacem",
-  "Sidi Slimane", "Zagora", "Essaouira", "Tinghir", "Youssoufia", "Jerada",
-  "Dakhla", "Boujdour", "Sidi Bennour", "Benslimane", "Aït Melloul", "Skhirat"
-];
-
-
-async function main() {
   const existingSuperAdmin = await prisma.user.findUnique({
     where: {
       massarCode: DEFAULT_ADMIN.massarCode,
@@ -55,8 +90,7 @@ async function main() {
     }else {
     console.log('Le superadmin existe déjà');
   }
-
-      // create cities
+    //   // create cities
     for (const cityName of cities) {
       const existingCity = await prisma.city.findFirst({ where: { name: cityName } });
     

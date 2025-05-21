@@ -8,6 +8,7 @@ import {
   Max,
   IsUUID,
 } from 'class-validator';
+import { BacOptionEntity } from 'src/bac-option/bacOption.entity';
 
 export class UpdateUserDto {
   @IsUUID()
@@ -35,8 +36,8 @@ export class UpdateUserDto {
   status: UserStatus;
 
   @IsOptional()
-  @IsEnum(BacOption, { message: 'Invalid BAC option' })
-  bacOption: BacOption;
+  @IsEnum(BacOptionEntity, { message: 'Invalid BAC option' })
+  bacOption: BacOptionEntity;
 
   @IsOptional()
   @IsString()

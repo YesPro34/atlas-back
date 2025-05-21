@@ -21,6 +21,7 @@ import { BacOption, Role, UserStatus } from '@prisma/client';
 import { File } from 'multer';
 import { UpdateUserDto } from '../dto/update-user.dto';
 import { Roles } from 'src/common/decorators/roles.decorator';
+import { BacOptionEntity } from 'src/bac-option/bacOption.entity';
 interface ExcelRow {
   mot_de_passe: string;
   massar_code: string;
@@ -42,7 +43,7 @@ interface ExcelRow {
 @Controller('user')
 export class UserController {
   constructor(private readonly userService: UserService) {}
-  
+
   @Roles('ADMIN')
   @Get()
   findAllUsers() {
@@ -78,11 +79,11 @@ export class UserController {
   getAllStudents() {
     return this.userService.findStudents();
   }
-  @Roles('ADMIN','STUDENT')
+  @Roles('ADMIN', 'STUDENT')
   @Get('/mySchools/:bacOption')
   getSchoolsByBacOption(@Param('bacOption') bacOption: string) {
     return this.userService.findSchoolsByBacOption(bacOption);
-}
+  }
 
   @Post('upload-excel')
   @HttpCode(201)
@@ -100,8 +101,7 @@ export class UserController {
     const sheet = workbook.Sheets[workbook.SheetNames[0]];
     const rows = XLSX.utils.sheet_to_json(sheet);
 
-    const results: { massarCode: string; status: string; reason?: string }[] =
-      [];
+    const results: { massarCode: string; status: string; reason?: string }[] = [];
 
     for (const row of rows as ExcelRow[]) {
       const createUserDto: CreateUserDto = {
@@ -111,7 +111,7 @@ export class UserController {
         lastName: String(row.nom),
         role: row.role as Role,
         status: row.status as UserStatus,
-        bacOption: row.option_bac as BacOption,
+        bacOption: row.option_bac as string,
         city: String(row.ville),
         nationalMark: parseFloat(row.note_nationale ?? '0'),
         generalMark: parseFloat(row.note_globale ?? '0'),

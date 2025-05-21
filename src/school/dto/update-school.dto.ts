@@ -1,4 +1,4 @@
-import { BacOption, SchoolType } from '@prisma/client';
+import { SchoolType } from '@prisma/client';
 import { Transform } from 'class-transformer';
 import {
   IsArray,
@@ -7,6 +7,7 @@ import {
   IsOptional,
   IsString,
 } from 'class-validator';
+import { BacOptionEntity } from 'src/bac-option/bacOption.entity';
 
 export class UpdateSchoolDto {
   @IsString()
@@ -16,10 +17,10 @@ export class UpdateSchoolDto {
   )
   name: string;
 
-  @IsEnum(BacOption, { each: true })
+  @IsEnum(BacOptionEntity, { each: true })
   @IsArray()
   @IsOptional()
-  bacOptionsAllowed: BacOption[];
+  bacOptionsAllowed: BacOptionEntity[];
 
   @IsEnum(SchoolType)
   @IsOptional()

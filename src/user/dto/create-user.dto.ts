@@ -8,6 +8,7 @@ import {
   Min,
   Max,
 } from 'class-validator';
+import { BacOptionEntity } from 'src/bac-option/bacOption.entity';
 
 export class CreateUserDto {
   @IsString()
@@ -35,8 +36,8 @@ export class CreateUserDto {
   status: UserStatus;
 
   @IsOptional()
-  @IsEnum(BacOption, { message: 'Invalid BAC option' })
-  bacOption: BacOption;
+  @IsEnum(BacOptionEntity, { message: 'Invalid BAC option' })
+  bacOption: BacOptionEntity;
 
   @IsOptional()
   @IsString()
