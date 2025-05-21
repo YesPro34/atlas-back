@@ -1,15 +1,12 @@
-import { BacOption, SchoolType } from '@prisma/client';
+import { SchoolType } from '@prisma/client';
 import { Transform } from 'class-transformer';
 import {
   IsArray,
   IsBoolean,
   IsEnum,
   IsNotEmpty,
-  IsOptional,
   IsString,
-  IsUUID,
 } from 'class-validator';
-import { FiliereEntity } from 'src/filiere/entities/filiere.entity';
 
 export class CreateSchoolDto {
   @IsString()
@@ -19,12 +16,13 @@ export class CreateSchoolDto {
   )
   name: string;
 
-  @IsArray()
-  @IsNotEmpty({ message: 'At least one BAC option is required' })
-  bacOptionsAllowed: BacOption[];
-
   @IsEnum(SchoolType)
   type: SchoolType;
+
+  @IsArray()
+  @IsString({ each: true })
+  @IsNotEmpty({ message: 'At least one BAC option is required' })
+  bacOptionsAllowed: string[];
 
   @IsBoolean()
   isOpen: boolean;

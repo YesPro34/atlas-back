@@ -17,11 +17,12 @@ import { UserService } from '../services/user.service';
 import { FileInterceptor } from '@nestjs/platform-express';
 import * as XLSX from 'xlsx';
 import { diskStorage } from 'multer';
-import { BacOption, Role, UserStatus } from '@prisma/client';
+import { Role, UserStatus } from '@prisma/client';
 import { File } from 'multer';
 import { UpdateUserDto } from '../dto/update-user.dto';
 import { Roles } from 'src/common/decorators/roles.decorator';
 import { BacOptionEntity } from 'src/bac-option/bacOption.entity';
+
 interface ExcelRow {
   mot_de_passe: string;
   massar_code: string;
@@ -79,6 +80,7 @@ export class UserController {
   getAllStudents() {
     return this.userService.findStudents();
   }
+
   @Roles('ADMIN', 'STUDENT')
   @Get('/mySchools/:bacOption')
   getSchoolsByBacOption(@Param('bacOption') bacOption: string) {
@@ -96,7 +98,7 @@ export class UserController {
       }),
     }),
   )
-  async uploadUsersFromExcel(@UploadedFile() file: File.Multer.File) {
+  async uploadUsersFromExcel(@UploadedFile() file: any) {
     const workbook = XLSX.readFile(file.path);
     const sheet = workbook.Sheets[workbook.SheetNames[0]];
     const rows = XLSX.utils.sheet_to_json(sheet);
@@ -111,7 +113,7 @@ export class UserController {
         lastName: String(row.nom),
         role: row.role as Role,
         status: row.status as UserStatus,
-        bacOption: row.option_bac as string,
+        bacOption: new BacOptionEntity({ name: row.option_bac || '' }),
         city: String(row.ville),
         nationalMark: parseFloat(row.note_nationale ?? '0'),
         generalMark: parseFloat(row.note_globale ?? '0'),

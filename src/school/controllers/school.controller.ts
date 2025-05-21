@@ -74,7 +74,7 @@ export class SchoolController {
       }),
     }),
   )
-  async uploadSchoolsFromExcel(@UploadedFile() file: File.Multer.File) {
+  async uploadSchoolsFromExcel(@UploadedFile() file: any) {
     // Read the Excel file
     const workbook = XLSX.readFile(file.path);
     const sheet = workbook.Sheets[workbook.SheetNames[0]];

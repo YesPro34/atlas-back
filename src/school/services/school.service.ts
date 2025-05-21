@@ -9,8 +9,7 @@ import { CreateSchoolDto } from '../dto/create-school.dto';
 import { UpdateSchoolDto } from '../dto/update-school.dto';
 import { SchoolType } from '@prisma/client';
 import { School } from '../entities/school.entity';
-import { BacOptionEntity } from 'src/bac-option/bacOption.entity';
-import { CityEntity } from 'src/city/entities/city.entity';
+import { PrismaService } from 'src/prisma/prisma.service';
 
 // Define the data structure for creating a school
 interface IcreateSchoolData {
@@ -28,7 +27,10 @@ interface CreateSchoolWithRelations {
 
 @Injectable()
 export class SchoolService {
-  constructor(private readonly schoolRepo: SchoolRepository) {}
+  constructor(
+    private readonly schoolRepo: SchoolRepository,
+    private readonly prisma: PrismaService
+  ) {}
 
   async create(createSchoolDto: CreateSchoolDto) {
     const existingSchool = await this.schoolRepo.findByName(
@@ -40,7 +42,7 @@ export class SchoolService {
     try {
       await this.schoolRepo.create(createSchoolDto);
     } catch (error: any) {
-      throw new InternalServerErrorException('create school Faild ');
+      throw new InternalServerErrorException('create school Failed');
     }
   }
 
@@ -60,7 +62,7 @@ export class SchoolService {
     try {
       return await this.schoolRepo.update(id, updateSchoolDto);
     } catch (error: any) {
-      throw new InternalServerErrorException('update school  Faild ');
+      throw new InternalServerErrorException('update school Failed');
     }
   }
 
@@ -73,37 +75,23 @@ export class SchoolService {
     bacOptionNames,
     cityNames,
   }: CreateSchoolWithRelations): Promise<School> {
-    // Find all the bac options by name
-    const bacOptions: BacOptionEntity[] = await this.prisma.bacOption.findMany({
-      where: {
-        name: {
-          in: bacOptionNames,
-        },
-      },
-    });
-
-    // Find all the cities by name
-    const cities: CityEntity[] = await this.prisma.city.findMany({
-      where: {
-        name: {
-          in: cityNames,
-        },
-      },
-    });
-
     // Create the school with connections to bac options and cities
     const school: School = await this.prisma.school.create({
       data: {
         ...schoolData,
         // Connect the school to existing bac options
         bacOptionsAllowed: {
-          connect: bacOptions.map((option) => ({ id: option.id })),
+          connect: bacOptionNames.map((name) => ({ name })),
         },
         // Connect the school to existing cities
         cities: {
-          connect: cities.map((city) => ({ id: city.id })),
+          connect: cityNames.map((name) => ({ name })),
         },
       },
+      include: {
+        bacOptionsAllowed: true,
+        cities: true
+      }
     });
 
     return school;

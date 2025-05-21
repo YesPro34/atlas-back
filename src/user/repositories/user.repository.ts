@@ -11,12 +11,18 @@ export class UserRepository {
     return await this.prisma.user.findUnique({ where: { massarCode } });
   }
 
-  async create(user: CreateUserDto) {
-    const data = {
-      ...user,
-      bacOption: user.bacOption ?? null,
-    };
-    return await this.prisma.user.create({ data });
+  async create(data: CreateUserDto) {
+    const { bacOption, ...userData } = data;
+    return await this.prisma.user.create({
+      data: {
+        ...userData,
+        ...(bacOption && {
+          bacOption: {
+            connect: { id: bacOption.id }
+          }
+        })
+      }
+    });
   }
 
   async findAll() {

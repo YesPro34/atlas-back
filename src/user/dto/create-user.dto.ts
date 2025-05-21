@@ -7,8 +7,10 @@ import {
   IsNumber,
   Min,
   Max,
+  ValidateNested,
 } from 'class-validator';
 import { BacOptionEntity } from 'src/bac-option/bacOption.entity';
+import { Type } from 'class-transformer';
 
 export class CreateUserDto {
   @IsString()
@@ -36,8 +38,9 @@ export class CreateUserDto {
   status: UserStatus;
 
   @IsOptional()
-  @IsEnum(BacOptionEntity, { message: 'Invalid BAC option' })
-  bacOption: BacOptionEntity;
+  @ValidateNested()
+  @Type(() => BacOptionEntity)
+  bacOption?: BacOptionEntity;
 
   @IsOptional()
   @IsString()

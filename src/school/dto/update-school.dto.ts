@@ -7,7 +7,6 @@ import {
   IsOptional,
   IsString,
 } from 'class-validator';
-import { BacOptionEntity } from 'src/bac-option/bacOption.entity';
 
 export class UpdateSchoolDto {
   @IsString()
@@ -15,18 +14,18 @@ export class UpdateSchoolDto {
   @Transform(({ value }) =>
     typeof value === 'string' ? value.trim().toUpperCase() : value,
   )
-  name: string;
-
-  @IsEnum(BacOptionEntity, { each: true })
-  @IsArray()
-  @IsOptional()
-  bacOptionsAllowed: BacOptionEntity[];
+  name?: string;
 
   @IsEnum(SchoolType)
   @IsOptional()
-  type: SchoolType;
+  type?: SchoolType;
+
+  @IsArray()
+  @IsString({ each: true })
+  @IsOptional()
+  bacOptionsAllowed?: string[];
 
   @IsBoolean()
   @IsOptional()
-  isOpen: boolean;
+  isOpen?: boolean;
 }
