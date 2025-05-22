@@ -18,24 +18,44 @@ interface IcreateSchoolData {
   isOpen: boolean;
 }
 
+interface FiliereWithBacOptions {
+  name: string;
+  bacOptions: string[];
+}
+
 // Data needed to create a school with all its relations
 interface CreateSchoolWithRelations {
   schoolData: IcreateSchoolData;
   bacOptionNames: string[];
   cityNames: string[];
+  filieresWithBacOptions: FiliereWithBacOptions[];
 }
 
 @Injectable()
 export class SchoolService {
   constructor(
     private readonly schoolRepo: SchoolRepository,
-    private readonly prisma: PrismaService
+    private readonly prisma: PrismaService,
   ) {}
 
+  async findByName(name: string) {
+    if (!name) return null;
+    return await this.prisma.school.findFirst({
+      where: { name },
+      include: {
+        bacOptionsAllowed: true,
+        cities: true,
+        filieres: {
+          include: {
+            bacOptionsAllowed: true,
+          },
+        },
+      },
+    });
+  }
+
   async create(createSchoolDto: CreateSchoolDto) {
-    const existingSchool = await this.schoolRepo.findByName(
-      createSchoolDto.name,
-    );
+    const existingSchool = await this.findByName(createSchoolDto.name);
     if (existingSchool) {
       return new ConflictException('the School is already exist');
     }
@@ -74,6 +94,7 @@ export class SchoolService {
     schoolData,
     bacOptionNames,
     cityNames,
+    filieresWithBacOptions,
   }: CreateSchoolWithRelations): Promise<School> {
     // Create the school with connections to bac options and cities
     const school: School = await this.prisma.school.create({
@@ -87,11 +108,25 @@ export class SchoolService {
         cities: {
           connect: cityNames.map((name) => ({ name })),
         },
+        // Create filières with their specific bac options
+        filieres: {
+          create: filieresWithBacOptions.map((filiere) => ({
+            name: filiere.name.trim().toUpperCase(),
+            bacOptionsAllowed: {
+              connect: filiere.bacOptions.map((name) => ({ name })),
+            },
+          })),
+        },
       },
       include: {
         bacOptionsAllowed: true,
-        cities: true
-      }
+        cities: true,
+        filieres: {
+          include: {
+            bacOptionsAllowed: true,
+          },
+        },
+      },
     });
 
     return school;

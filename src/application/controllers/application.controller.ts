@@ -13,16 +13,16 @@
 //     return this.applicationService.create(createApplicationDto);
 //   }
 
-  // @Get('student/:studentId')
-  // findAllByStudent(@Param('studentId') studentId: string) {
-  //   return this.applicationService.findAllByStudent(studentId);
-  // }
+// @Get('student/:studentId')
+// findAllByStudent(@Param('studentId') studentId: string) {
+//   return this.applicationService.findAllByStudent(studentId);
+// }
 
-  // @Patch(':id/status')
-  // updateStatus(
-  //   @Param('id') id: string,
-  //   @Body() updateStatusDto: UpdateApplicationStatusDto,
-  // ) {
-  //   return this.applicationService.updateStatus(id, updateStatusDto);
-  // }
+// @Patch(':id/status')
+// updateStatus(
+//   @Param('id') id: string,
+//   @Body() updateStatusDto: UpdateApplicationStatusDto,
+// ) {
+//   return this.applicationService.updateStatus(id, updateStatusDto);
+// }
 //}

@@ -24,7 +24,6 @@ export class UserService {
   async findByMassarCode(massarCode: string) {
     return await this.userRepository.findByCodeMassar(massarCode);
   }
-
   // CREATE NEW USER
   async createUser(createUserDto: CreateUserDto) {
     // Check for existing user
@@ -108,7 +107,7 @@ export class UserService {
     });
   }
 
-  async findBacOptionByUserId(userId: string) { 
+  async findBacOptionByUserId(userId: string) {
     const user = await this.prisma.user.findUnique({
       where: { id: userId },
       select: { bacOption: true },

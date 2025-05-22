@@ -102,8 +102,8 @@ export class UserController {
     const workbook = XLSX.readFile(file.path);
     const sheet = workbook.Sheets[workbook.SheetNames[0]];
     const rows = XLSX.utils.sheet_to_json(sheet);
-
-    const results: { massarCode: string; status: string; reason?: string }[] = [];
+    const results: { massarCode: string; status: string; reason?: string }[] =
+      [];
 
     for (const row of rows as ExcelRow[]) {
       const createUserDto: CreateUserDto = {

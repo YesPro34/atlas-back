@@ -14,23 +14,23 @@ export class SchoolRepository {
       type: data.type,
       isOpen: data.isOpen,
       bacOptionsAllowed: {
-        connect: data.bacOptionsAllowed.map(name => ({ name }))
-      }
+        connect: data.bacOptionsAllowed.map((name) => ({ name })),
+      },
     };
 
     return await this.prisma.school.create({
       data: createData,
       include: {
-        bacOptionsAllowed: true
-      }
+        bacOptionsAllowed: true,
+      },
     });
   }
 
   async findAll() {
     return await this.prisma.school.findMany({
       include: {
-        bacOptionsAllowed: true
-      }
+        bacOptionsAllowed: true,
+      },
     });
   }
 
@@ -38,8 +38,8 @@ export class SchoolRepository {
     return await this.prisma.school.findUnique({
       where: { id },
       include: {
-        bacOptionsAllowed: true
-      }
+        bacOptionsAllowed: true,
+      },
     });
   }
 
@@ -47,8 +47,8 @@ export class SchoolRepository {
     return await this.prisma.school.findFirst({
       where: { name },
       include: {
-        bacOptionsAllowed: true
-      }
+        bacOptionsAllowed: true,
+      },
     });
   }
 
@@ -56,22 +56,22 @@ export class SchoolRepository {
     const updateData: Prisma.SchoolUpdateInput = {
       name: data.name,
       type: data.type,
-      isOpen: data.isOpen
+      isOpen: data.isOpen,
     };
 
     if (data.bacOptionsAllowed) {
       updateData.bacOptionsAllowed = {
         set: [], // First disconnect all
-        connect: data.bacOptionsAllowed.map(name => ({ name }))
+        connect: data.bacOptionsAllowed.map((name) => ({ name })),
       };
     }
-    
+
     return await this.prisma.school.update({
       where: { id },
       data: updateData,
       include: {
-        bacOptionsAllowed: true
-      }
+        bacOptionsAllowed: true,
+      },
     });
   }
 
@@ -84,14 +84,14 @@ export class SchoolRepository {
       where: {
         bacOptionsAllowed: {
           some: {
-            name: bacOptionName
-          }
+            name: bacOptionName,
+          },
         },
         isOpen: true,
       },
       include: {
-        bacOptionsAllowed: true
-      }
+        bacOptionsAllowed: true,
+      },
     });
   }
 }

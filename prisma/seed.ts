@@ -11,7 +11,7 @@ const cities = [
   "Casablanca", "Rabat", "Fès", "Marrakech", "Agadir", "Tanger", "Oujda",
   "Meknès", "Tétouan", "El Jadida", "Nador", "Kenitra", "Béni Mellal",
   "Khouribga", "Settat", "Safi", "Taza", "Mohammedia", "Errachidia", "Laâyoune",
-  "Guelmim", "Ouarzazate", "Taroudant", "Azrou", "Larache", "Al Hoceïma",
+  "Guelmim", "Ouarzazate", "Taroudant", "Azrou", "Larache", "El Houciema",
   "Ksar El Kebir", "Berkane", "Taourirt", "Midelt", "Ifrane", "Oued Zem",
   "Tan-Tan", "Fquih Ben Salah", "Temara", "Tiflet", "Salé", "Sidi Kacem",
   "Sidi Slimane", "Zagora", "Essaouira", "Tinghir", "Youssoufia", "Jerada",

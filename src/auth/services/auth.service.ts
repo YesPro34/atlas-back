@@ -19,8 +19,11 @@ export class AuthService {
   async validateLocalUser(massarCode: string, password: string) {
     const user = await this.userService.findByMassarCode(massarCode);
     if (!user) throw new UnauthorizedException('User not found!');
-    const studentBacOption = await this.userService.findBacOptionByUserId(user.id);
-    if (!studentBacOption) throw new UnauthorizedException('Bac option not found!');
+    const studentBacOption = await this.userService.findBacOptionByUserId(
+      user.id,
+    );
+    if (!studentBacOption)
+      throw new UnauthorizedException('Bac option not found!');
     const isPasswordMatched = await compare(password, user.password);
     if (!isPasswordMatched)
       throw new UnauthorizedException('Invalid Credentials!');

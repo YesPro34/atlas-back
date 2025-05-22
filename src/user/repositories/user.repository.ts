@@ -18,10 +18,10 @@ export class UserRepository {
         ...userData,
         ...(bacOption && {
           bacOption: {
-            connect: { id: bacOption.id }
-          }
-        })
-      }
+            connect: { name: bacOption.name },
+          },
+        }),
+      },
     });
   }
 
