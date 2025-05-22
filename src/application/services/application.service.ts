@@ -139,6 +139,7 @@ export class ApplicationService {
       throw new NotFoundException('School not found');
     }
 
+
     if (!school.isOpen) {
       throw new BadRequestException('School is not open for applications');
     }
@@ -216,6 +217,7 @@ export class ApplicationService {
             status: ApplicationStatus.PENDING,
           },
         });
+        console.log('application', application);
 
         // Create all choices
         await prisma.applicationChoice.createMany({
@@ -227,7 +229,9 @@ export class ApplicationService {
             type: choice.type,
           })),
         });
+        const studentChoice = this.findOne(application.id);
 
+        console.log(studentChoice);
         return this.findOne(application.id);
       });
     } catch (error) {

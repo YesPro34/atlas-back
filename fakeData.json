@@ -1,0 +1,210 @@
+//First, creating an application for an ENSA school (city-based ranking)
+{
+  "schoolId": "school-ensa-id",
+  "userId": "student-id",
+  "choices": [
+    {
+      "rank": 1,
+      "cityId": "casablanca-id",
+      "type": "CITY"
+    },
+    {
+      "rank": 2,
+      "cityId": "rabat-id",
+      "type": "CITY"
+    },
+    {
+      "rank": 3,
+      "cityId": "fes-id",
+      "type": "CITY"
+    }
+  ]
+}
+
+//Application for ENCG (another city-based school)
+{
+  "schoolId": "school-encg-id",
+  "userId": "student-id",
+  "choices": [
+    {
+      "rank": 1,
+      "cityId": "casablanca-id",
+      "type": "CITY"
+    },
+    {
+      "rank": 2,
+      "cityId": "tanger-id",
+      "type": "CITY"
+    },
+    {
+      "rank": 3,
+      "cityId": "marrakech-id",
+      "type": "CITY"
+    }
+  ]
+}
+//Application for CPGE (filière-based, allows multiple filières):
+{
+  "schoolId": "school-cpge-id",
+  "userId": "student-id",
+  "choices": [
+    {
+      "rank": 1,
+      "filiereId": "mp-filiere-id",
+      "type": "FILIERE"
+    },
+    {
+      "rank": 2,
+      "filiereId": "psi-filiere-id",
+      "type": "FILIERE"
+    },
+    {
+      "rank": 3,
+      "filiereId": "tsi-filiere-id",
+      "type": "FILIERE"
+    }
+  ]
+}
+
+
+//Application for ISMALA (filière-based, max 3 filières):
+{
+  "schoolId": "school-ismala-id",
+  "userId": "student-id",
+  "choices": [
+    {
+      "rank": 1,
+      "filiereId": "maintenance-aeronautique-id",
+      "type": "FILIERE"
+    },
+    {
+      "rank": 2,
+      "filiereId": "logistique-aeroportuaire-id",
+      "type": "FILIERE"
+    },
+    {
+      "rank": 3,
+      "filiereId": "maintenance-aeronautique-id", // Same filière can be repeated for ISMALA
+      "type": "FILIERE"
+    }
+  ]
+}
+
+//correct ISM :
+{
+  "schoolId": "school-ism-id",
+  "userId": "student-id",
+  "choices": [
+    {
+      "rank": 1,
+      "filiereId": "entrainement-sportif-id",
+      "type": "FILIERE"
+    },
+    {
+      "rank": 2,
+      "filiereId": "management-sport-id",
+      "type": "FILIERE"
+    }
+  ]
+}
+
+Invalid senarios :
+// Too many choices for ISM (max 2 allowed)
+{
+  "schoolId": "school-ism-id",
+  "userId": "student-id",
+  "choices": [
+    {
+      "rank": 1,
+      "filiereId": "entrainement-sportif-id",
+      "type": "FILIERE"
+    },
+    {
+      "rank": 2,
+      "filiereId": "management-sport-id",
+      "type": "FILIERE"
+    },
+    {
+      "rank": 3,
+      "filiereId": "autre-filiere-id",
+      "type": "FILIERE"
+    }
+  ]
+}
+
+// Mixed types (invalid)
+{
+  "schoolId": "school-ensa-id",
+  "userId": "student-id",
+  "choices": [
+    {
+      "rank": 1,
+      "cityId": "casablanca-id",
+      "type": "CITY"
+    },
+    {
+      "rank": 2,
+      "filiereId": "some-filiere-id",
+      "type": "FILIERE"
+    }
+  ]
+}
+
+// Non-sequential ranks
+{
+  "schoolId": "school-encg-id",
+  "userId": "student-id",
+  "choices": [
+    {
+      "rank": 1,
+      "cityId": "casablanca-id",
+      "type": "CITY"
+    },
+    {
+      "rank": 3,
+      "cityId": "tanger-id",
+      "type": "CITY"
+    }
+  ]
+}
+
+//ISMALA Application for ECO/SGC Student (must repeat management filière 3 times):
+{
+  "userId": "eco-student-id",
+  "schoolId": "ismala-school-id",
+  "choices": [
+    {
+      "rank": 1,
+      "filiereId": "management-filiere-id",
+      "type": "FILIERE"
+    },
+    {
+      "rank": 2,
+      "filiereId": "management-filiere-id",
+      "type": "FILIERE"
+    },
+    {
+      "rank": 3,
+      "filiereId": "management-filiere-id",
+      "type": "FILIERE"
+    }
+  ]
+}
+
+//CPGE Application for ECO/SGC Student (must choose only ECT)
+{
+  "userId": "eco-student-id",
+  "schoolId": "cpge-school-id",
+  "choices": [
+    {
+      "rank": 1,
+      "filiereId": "ect-filiere-id",
+      "type": "FILIERE"
+    },
+    {
+      "rank": 2,
+      "filiereId": "ect-filiere-id",
+      "type": "FILIERE"
+    }
+  ]
+}

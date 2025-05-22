@@ -13,6 +13,7 @@ import jwtConfig from './auth/config/jwt.config';
 import refreshConfig from './auth/config/refresh.config';
 import { BacOptionModule } from './bac-option/bac-option.module';
 import { SchoolTypeModule } from './school-type/school-type.module';
+import { ApplicationModule } from './application/application.module';
 
 @Module({
   imports: [
@@ -29,6 +30,7 @@ import { SchoolTypeModule } from './school-type/school-type.module';
     CityModule,
     BacOptionModule,
     SchoolTypeModule,
+    ApplicationModule,
   ],
   controllers: [AppController, UserController],
   providers: [AppService],

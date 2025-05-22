@@ -7,6 +7,7 @@ import {
   Param,
   Delete,
   ParseUUIDPipe,
+  Request,
 } from '@nestjs/common';
 import { ApplicationService } from '../services/application.service';
 import {
@@ -19,15 +20,14 @@ export class ApplicationController {
   constructor(private readonly applicationService: ApplicationService) {}
 
   @Post()
-  create(
-    @Body() createApplicationDto: CreateApplicationDto,
-    @Body('userId') userId: string,
-  ) {
+  create(@Body() createApplicationDto: CreateApplicationDto, @Request() req) {
+    const userId = createApplicationDto.userId;
     return this.applicationService.create(userId, createApplicationDto);
   }
 
   @Get()
-  findAll(@Body('userId') userId: string) {
+  findAll(@Request() req) {
+    const userId = req.user.id;
     return this.applicationService.findAll(userId);
   }
 
@@ -45,10 +45,8 @@ export class ApplicationController {
   }
 
   @Delete(':id')
-  remove(
-    @Param('id', ParseUUIDPipe) id: string,
-    @Body('userId') userId: string,
-  ) {
+  remove(@Param('id', ParseUUIDPipe) id: string, @Request() req) {
+    const userId = req.user.id;
     return this.applicationService.remove(id, userId);
   }
 }

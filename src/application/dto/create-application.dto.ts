@@ -6,8 +6,6 @@ import {
   IsOptional,
   Min,
   ValidateNested,
-  ArrayMinSize,
-  ArrayMaxSize,
   IsEnum,
 } from 'class-validator';
 import { Type } from 'class-transformer';
@@ -33,6 +31,9 @@ export class ApplicationChoiceDto {
 export class CreateApplicationDto {
   @IsString()
   schoolId: string;
+
+  @IsString()
+  userId: string;
 
   @IsArray()
   @ValidateNested({ each: true })
