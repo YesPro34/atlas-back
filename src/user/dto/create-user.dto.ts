@@ -7,10 +7,8 @@ import {
   IsNumber,
   Min,
   Max,
-  ValidateNested,
+  IsUUID,
 } from 'class-validator';
-import { BacOptionEntity } from 'src/bac-option/bacOption.entity';
-import { Type } from 'class-transformer';
 
 export class CreateUserDto {
   @IsString()
@@ -38,9 +36,8 @@ export class CreateUserDto {
   status: UserStatus;
 
   @IsOptional()
-  @ValidateNested()
-  @Type(() => BacOptionEntity)
-  bacOption?: BacOptionEntity;
+  @IsUUID()
+  bacOptionId?: string;
 
   @IsOptional()
   @IsString()

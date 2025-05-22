@@ -108,7 +108,7 @@
   ]
 }
 
-Invalid senarios :
+//Invalid senarios :
 // Too many choices for ISM (max 2 allowed)
 {
   "schoolId": "school-ism-id",

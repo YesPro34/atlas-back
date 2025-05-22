@@ -83,7 +83,7 @@ export class SchoolController {
 
   @Patch(':id')
   async update(
-    @Param('id', ParseUUIDPipe) id: string,
+    @Param('id') id: string,
     @Body() updateSchoolDto: UpdateSchoolDto,
   ) {
     return await this.schoolService.update(id, updateSchoolDto);

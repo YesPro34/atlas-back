@@ -12,13 +12,13 @@ export class UserRepository {
   }
 
   async create(data: CreateUserDto) {
-    const { bacOption, ...userData } = data;
+    const { bacOptionId, ...userData } = data;
     return await this.prisma.user.create({
       data: {
         ...userData,
-        ...(bacOption && {
+        ...(bacOptionId && {
           bacOption: {
-            connect: { name: bacOption.name },
+            connect: { id: bacOptionId },
           },
         }),
       },

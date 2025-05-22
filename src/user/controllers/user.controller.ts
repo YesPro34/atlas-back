@@ -22,6 +22,7 @@ import { File } from 'multer';
 import { UpdateUserDto } from '../dto/update-user.dto';
 import { Roles } from 'src/common/decorators/roles.decorator';
 import { BacOptionEntity } from 'src/bac-option/bacOption.entity';
+import { PrismaService } from 'src/prisma/prisma.service';
 
 interface ExcelRow {
   mot_de_passe: string;
@@ -43,7 +44,10 @@ interface ExcelRow {
 
 @Controller('user')
 export class UserController {
-  constructor(private readonly userService: UserService) {}
+  constructor(
+    private readonly userService: UserService,
+    private readonly prisma: PrismaService
+  ) {}
 
   @Roles('ADMIN')
   @Get()
@@ -106,25 +110,30 @@ export class UserController {
       [];
 
     for (const row of rows as ExcelRow[]) {
-      const createUserDto: CreateUserDto = {
-        password: String(row.mot_de_passe),
-        massarCode: String(row.massar_code),
-        firstName: String(row.prenom),
-        lastName: String(row.nom),
-        role: row.role as Role,
-        status: row.status as UserStatus,
-        bacOption: new BacOptionEntity({ name: row.option_bac || '' }),
-        city: String(row.ville),
-        nationalMark: parseFloat(row.note_nationale ?? '0'),
-        generalMark: parseFloat(row.note_globale ?? '0'),
-        mathMark: parseFloat(row.note_math ?? '0'),
-        physicMark: parseFloat(row.note_physique ?? '0'),
-        svtMark: parseFloat(row.note_svt ?? '0'),
-        englishMark: parseFloat(row.note_anglais ?? '0'),
-        philosophyMark: parseFloat(row.note_philosophie ?? '0'),
-      };
-
       try {
+        // First find the bacOption by name
+        const bacOption = await this.prisma.bacOption.findUnique({
+          where: { name: row.option_bac || '' }
+        });
+
+        const createUserDto: CreateUserDto = {
+          password: String(row.mot_de_passe),
+          massarCode: String(row.massar_code),
+          firstName: String(row.prenom),
+          lastName: String(row.nom),
+          role: row.role as Role,
+          status: row.status as UserStatus,
+          bacOptionId: bacOption?.id,
+          city: String(row.ville),
+          nationalMark: parseFloat(row.note_nationale ?? '0'),
+          generalMark: parseFloat(row.note_globale ?? '0'),
+          mathMark: parseFloat(row.note_math ?? '0'),
+          physicMark: parseFloat(row.note_physique ?? '0'),
+          svtMark: parseFloat(row.note_svt ?? '0'),
+          englishMark: parseFloat(row.note_anglais ?? '0'),
+          philosophyMark: parseFloat(row.note_philosophie ?? '0'),
+        };
+
         await this.userService.createUser(createUserDto);
         results.push({
           massarCode: createUserDto.massarCode,
@@ -132,7 +141,7 @@ export class UserController {
         });
       } catch (error) {
         results.push({
-          massarCode: createUserDto.massarCode,
+          massarCode: row.massar_code,
           status: 'Error',
           reason: error?.response?.message || error.message,
         });

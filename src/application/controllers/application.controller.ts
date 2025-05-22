@@ -32,7 +32,7 @@ export class ApplicationController {
   }
 
   @Get(':id')
-  findOne(@Param('id', ParseUUIDPipe) id: string) {
+  findOne(@Param('id') id: string) {
     return this.applicationService.findOne(id);
   }
 

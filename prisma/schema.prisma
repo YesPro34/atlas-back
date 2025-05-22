@@ -19,7 +19,7 @@ model User {
   firstName          String         @map("prenom")
   lastName           String         @map("nom")
   bacOptionId        String?        
-  bacOption          BacOption?     @relation("UserBacOption", fields: [bacOptionId], references: [id]) 
+  bacOption          BacOption?     @relation("UserBacOption", fields: [bacOptionId], references: [id], onDelete: SetNull) 
   city               String?        @map("ville")
   nationalMark       Float?         @map("note_national")
   generalMark        Float?         @map("moyenne_general")
@@ -52,7 +52,7 @@ model School {
   id                String      @id @default(uuid())
   name              String      @map("nom")
   typeId            String      @map("type_id")
-  type              SchoolType  @relation(fields: [typeId], references: [id])
+  type              SchoolType  @relation(fields: [typeId], references: [id], onDelete: Cascade)
   isOpen            Boolean     @default(false) @map("est_ouverte")
   filieres          Filiere[]
   applications      Application[]
@@ -66,7 +66,7 @@ model Filiere {
   id                String      @id @default(uuid())
   name              String      @map("nom")
   schoolId          String      @map("ecole_id")
-  school            School      @relation(fields: [schoolId], references: [id])
+  school            School      @relation(fields: [schoolId], references: [id], onDelete: Cascade)
   bacOptionsAllowed BacOption[] @relation("FiliereBacOptions")
   choices           ApplicationChoice[]
 
@@ -81,8 +81,8 @@ model Application {
   applicationDate DateTime            @default(now()) @map("date_candidature")
   updatedAt       DateTime            @updatedAt @map("date_mise_a_jour")
 
-  user            User                @relation(fields: [userId], references: [id])
-  school          School              @relation(fields: [schoolId], references: [id])
+  user            User                @relation(fields: [userId], references: [id], onDelete: Cascade)
+  school          School              @relation(fields: [schoolId], references: [id], onDelete: Cascade)
   choices         ApplicationChoice[]
 
   @@map("candidatures")
@@ -99,8 +99,8 @@ model ApplicationChoice {
   cityId        String?     @map("ville_id")
 
   application   Application @relation(fields: [applicationId], references: [id], onDelete: Cascade)
-  filiere       Filiere?    @relation(fields: [filiereId], references: [id])
-  city          City?       @relation(fields: [cityId], references: [id], name: "CityChoices")
+  filiere       Filiere?    @relation(fields: [filiereId], references: [id], onDelete: SetNull)
+  city          City?       @relation(fields: [cityId], references: [id], name: "CityChoices", onDelete: SetNull)
 
   @@map("choix_candidature")
   @@unique([applicationId, rank])
