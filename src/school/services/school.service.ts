@@ -7,16 +7,9 @@ import {
 import { SchoolRepository } from '../repositories/school.repository';
 import { CreateSchoolDto } from '../dto/create-school.dto';
 import { UpdateSchoolDto } from '../dto/update-school.dto';
-import { SchoolType } from '@prisma/client';
 import { School } from '../entities/school.entity';
 import { PrismaService } from 'src/prisma/prisma.service';
-
-// Define the data structure for creating a school
-interface IcreateSchoolData {
-  name: string;
-  type: SchoolType;
-  isOpen: boolean;
-}
+import { SchoolTypeService } from '../../school-type/services/school-type.service';
 
 interface FiliereWithBacOptions {
   name: string;
@@ -25,7 +18,9 @@ interface FiliereWithBacOptions {
 
 // Data needed to create a school with all its relations
 interface CreateSchoolWithRelations {
-  schoolData: IcreateSchoolData;
+  name: string;
+  typeId: string;
+  isOpen: boolean;
   bacOptionNames: string[];
   cityNames: string[];
   filieresWithBacOptions: FiliereWithBacOptions[];
@@ -36,6 +31,7 @@ export class SchoolService {
   constructor(
     private readonly schoolRepo: SchoolRepository,
     private readonly prisma: PrismaService,
+    private readonly schoolTypeService: SchoolTypeService,
   ) {}
 
   async findByName(name: string) {
@@ -55,12 +51,15 @@ export class SchoolService {
   }
 
   async create(createSchoolDto: CreateSchoolDto) {
+    // Verify that the school type exists
+    await this.schoolTypeService.findOne(createSchoolDto.typeId);
+    
     const existingSchool = await this.findByName(createSchoolDto.name);
     if (existingSchool) {
       return new ConflictException('the School is already exist');
     }
     try {
-      await this.schoolRepo.create(createSchoolDto);
+      return await this.schoolRepo.create(createSchoolDto);
     } catch (error: any) {
       throw new InternalServerErrorException('create school Failed');
     }
@@ -72,34 +71,48 @@ export class SchoolService {
 
   async findOne(id: string) {
     const school = await this.schoolRepo.findOne(id);
-    if (!school) throw new NotFoundException('School not found');
+    if (!school) {
+      throw new NotFoundException(`School with ID ${id} not found`);
+    }
     return school;
   }
 
   async update(id: string, updateSchoolDto: UpdateSchoolDto) {
-    const school = await this.schoolRepo.findOne(id);
-    if (!school) throw new NotFoundException('School not found');
-    try {
-      return await this.schoolRepo.update(id, updateSchoolDto);
-    } catch (error: any) {
-      throw new InternalServerErrorException('update school Failed');
+    // Verify that the school exists
+    await this.findOne(id);
+
+    // If typeId is being updated, verify that the new type exists
+    if (updateSchoolDto.typeId) {
+      await this.schoolTypeService.findOne(updateSchoolDto.typeId);
     }
+
+    return await this.schoolRepo.update(id, updateSchoolDto);
   }
 
   async remove(id: string) {
-    return await this.schoolRepo.remove(id);
+    // Verify that the school exists
+    await this.findOne(id);
+    
+    await this.schoolRepo.remove(id);
   }
 
   async createWithRelations({
-    schoolData,
+    name,
+    typeId,
+    isOpen,
     bacOptionNames,
     cityNames,
     filieresWithBacOptions,
   }: CreateSchoolWithRelations): Promise<School> {
+    // Verify that the school type exists
+    await this.schoolTypeService.findOne(typeId);
+
     // Create the school with connections to bac options and cities
-    const school: School = await this.prisma.school.create({
+    const createdSchool = await this.prisma.school.create({
       data: {
-        ...schoolData,
+        name,
+        typeId,
+        isOpen,
         // Connect the school to existing bac options
         bacOptionsAllowed: {
           connect: bacOptionNames.map((name) => ({ name })),
@@ -119,6 +132,7 @@ export class SchoolService {
         },
       },
       include: {
+        type: true,
         bacOptionsAllowed: true,
         cities: true,
         filieres: {
@@ -129,6 +143,6 @@ export class SchoolService {
       },
     });
 
-    return school;
+    return new School(createdSchool);
   }
 }

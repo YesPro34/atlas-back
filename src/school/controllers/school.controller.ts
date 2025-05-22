@@ -11,6 +11,7 @@ import {
   Post,
   UploadedFile,
   UseInterceptors,
+  ParseUUIDPipe,
 } from '@nestjs/common';
 import { SchoolService } from '../services/school.service';
 import { CreateSchoolDto } from '../dto/create-school.dto';
@@ -19,15 +20,16 @@ import * as XLSX from 'xlsx';
 import { diskStorage } from 'multer';
 import { SchoolType } from '@prisma/client';
 import { UpdateSchoolDto } from '../dto/update-school.dto';
+import { SchoolTypeService } from '../../school-type/services/school-type.service';
 // import { JwtAuthGuard } from 'src/auth/guards/jwt.guard';
 
 // Define the expected Excel row structure
 interface ExcelRow {
-  Etablissement: string;
-  Type: string;
+  Etablissement?: string;
+  Type?: string;
   Filieres?: string;
-  bacOptionsAllowed: string;
-  isOpen: string;
+  bacOptionsAllowed?: string;
+  isOpen?: string;
   Villes?: string;
 }
 
@@ -49,76 +51,25 @@ interface FiliereWithBacOptions {
 
 interface ProcessedSchoolData {
   name: string;
-  type: SchoolType;
+  typeId: string;
   isOpen: boolean;
   cities: string[];
   filieresWithBacOptions: FiliereWithBacOptions[];
   defaultBacOptions: string[];
 }
 
-const SCHOOL_NETWORKS: { [key: string]: SchoolNetwork } = {
-  ENSA: {
-    name: 'ENSA',
-    maxCities: 13,
-    requiresCityRanking: true,
-    type: SchoolType.ENSA,
-  },
-  ENSAM: {
-    name: 'ENSAM',
-    maxCities: 3,
-    requiresCityRanking: true,
-    type: SchoolType.ENSAM,
-  },
-  ENCG: {
-    name: 'ENCG',
-    maxCities: 12,
-    requiresCityRanking: true,
-    type: SchoolType.ENCG,
-  },
-  ISMALA: {
-    name: 'ISMALA',
-    maxFilieres: 3,
-    requiresCityRanking: false,
-    allowMultipleFilieresSelection: false,
-    type: SchoolType.ISMALA,
-  },
-  FMPD: {
-    name: 'FMPD',
-    maxFilieres: 3,
-    requiresCityRanking: false,
-    allowMultipleFilieresSelection: false,
-    type: SchoolType.FMPD,
-  },
-  IMS: {
-    name: 'IMS',
-    maxFilieres: 2,
-    requiresCityRanking: false,
-    allowMultipleFilieresSelection: false,
-    type: SchoolType.IMS,
-  },
-  IFMBTP: {
-    name: 'IFMBTP',
-    maxFilieres: 3,
-    requiresCityRanking: false,
-    allowMultipleFilieresSelection: true,
-    type: SchoolType.IFMBTP,
-  },
-  CPGE: {
-    name: 'CPGE',
-    requiresCityRanking: false,
-    specificBacOptions: ['PC', 'SVT', 'SMA', 'SMB'],
-    type: SchoolType.CPGE,
-  },
-};
 
 // @UseGuards(JwtAuthGuard)
 @Controller('school')
 export class SchoolController {
-  constructor(private readonly schoolService: SchoolService) {}
+  constructor(
+    private readonly schoolService: SchoolService,
+    private readonly schoolTypeService: SchoolTypeService,
+  ) {}
 
   @Post()
-  async create(@Body() dto: CreateSchoolDto) {
-    return await this.schoolService.create(dto);
+  async create(@Body() createSchoolDto: CreateSchoolDto) {
+    return await this.schoolService.create(createSchoolDto);
   }
 
   @Get()
@@ -127,22 +78,21 @@ export class SchoolController {
   }
 
   @Get(':id')
-  async findOne(@Param('id') id: string) {
-    const school = await this.schoolService.findOne(id);
-    return {
-      statusCode: HttpStatus.OK,
-      data: school,
-    };
+  async findOne(@Param('id', ParseUUIDPipe) id: string) {
+    return await this.schoolService.findOne(id);
   }
 
   @Patch(':id')
-  async update(@Param('id') id: string, @Body() dto: UpdateSchoolDto) {
-    return await this.schoolService.update(id, dto);
+  async update(
+    @Param('id', ParseUUIDPipe) id: string,
+    @Body() updateSchoolDto: UpdateSchoolDto,
+  ) {
+    return await this.schoolService.update(id, updateSchoolDto);
   }
 
   @Delete(':id')
   @HttpCode(HttpStatus.NO_CONTENT)
-  async remove(@Param('id') id: string) {
+  async remove(@Param('id', ParseUUIDPipe) id: string) {
     await this.schoolService.remove(id);
   }
 
@@ -161,7 +111,7 @@ export class SchoolController {
     // Read the Excel file
     const workbook = XLSX.readFile(file.path);
     const sheet = workbook.Sheets[workbook.SheetNames[0]];
-    const rows = XLSX.utils.sheet_to_json(sheet);
+    const rows = XLSX.utils.sheet_to_json<ExcelRow>(sheet);
 
     const results: { school: string; status: string; reason?: string }[] = [];
     const schoolsMap = new Map<string, ProcessedSchoolData>();
@@ -172,56 +122,63 @@ export class SchoolController {
       // If this row has an Etablissement, it's a new school
       if (row.Etablissement) {
         currentSchool = row.Etablissement.trim().toUpperCase();
-
+        
         if (!schoolsMap.has(currentSchool)) {
           const bacOptions = row.bacOptionsAllowed
-            ? row.bacOptionsAllowed
-                .split(',')
-                .map((opt) => opt.trim())
-                .filter(Boolean)
+            ? row.bacOptionsAllowed.split(',').map(opt => opt.trim()).filter(Boolean)
             : [];
 
-          // Initialize school data on first encounter
-          schoolsMap.set(currentSchool, {
-            name: currentSchool,
-            type: row.Type?.trim().toUpperCase() as SchoolType,
-            isOpen: row.isOpen?.trim().toUpperCase() === 'TRUE',
-            cities: row.Villes
-              ? row.Villes.split(',')
-                  .map((city) => city.trim())
-                  .filter(Boolean)
-              : [],
-            filieresWithBacOptions: [],
-            defaultBacOptions: bacOptions, // Store default bacOptions for schools without filières
-          });
+          try {
+            // Look up the SchoolType by code
+            const typeCode = row.Type?.trim().toUpperCase() || 'UNKNOWN';
+            const schoolType = await this.schoolTypeService.findByCode(typeCode);
+
+            // Initialize school data on first encounter
+            schoolsMap.set(currentSchool, {
+              name: currentSchool,
+              typeId: schoolType.id,
+              isOpen: row.isOpen?.trim().toUpperCase() === 'TRUE',
+              cities: row.Villes 
+                ? row.Villes.split(',').map(city => city.trim()).filter(Boolean)
+                : [],
+              filieresWithBacOptions: [],
+              defaultBacOptions: bacOptions
+            });
+          } catch (error) {
+            // If school type not found, log error and skip this school
+            results.push({
+              school: currentSchool,
+              status: 'Error',
+              reason: `Invalid school type: ${row.Type?.trim().toUpperCase() || 'UNKNOWN'}`
+            });
+            currentSchool = null;
+            continue;
+          }
         }
       }
 
-      // Skip if we don't have a current school (shouldn't happen with well-formed data)
+      // Skip if we don't have a current school
       if (!currentSchool) continue;
 
       // Process filières and their bac options for this row
       if (row.Filieres) {
-        const filieres = row.Filieres.split(',')
-          .map((f) => f.trim())
+        const filieres = row.Filieres
+          .split(',')
+          .map(f => f.trim())
           .filter(Boolean);
 
         const bacOptions = row.bacOptionsAllowed
-          ? row.bacOptionsAllowed
-              .split(',')
-              .map((opt) => opt.trim())
-              .filter(Boolean)
+          ? row.bacOptionsAllowed.split(',').map(opt => opt.trim()).filter(Boolean)
           : [];
 
         // Get the current school's data
         const schoolData = schoolsMap.get(currentSchool)!;
 
         // Add each filière with its specific bac options
-        filieres.forEach((filiere) => {
-          // Directly add the filière without checking for duplicates
+        filieres.forEach(filiere => {
           schoolData.filieresWithBacOptions.push({
             name: filiere,
-            bacOptions: bacOptions,
+            bacOptions: bacOptions
           });
         });
       }
@@ -243,23 +200,14 @@ export class SchoolController {
 
         // Create the school with all its collected data
         const createdSchool = await this.schoolService.createWithRelations({
-          schoolData: {
-            name: schoolData.name,
-            type: schoolData.type,
-            isOpen: schoolData.isOpen,
-          },
-          bacOptionNames:
-            schoolData.filieresWithBacOptions.length > 0
-              ? Array.from(
-                  new Set(
-                    schoolData.filieresWithBacOptions.flatMap(
-                      (f) => f.bacOptions,
-                    ),
-                  ),
-                )
-              : schoolData.defaultBacOptions, // Use defaultBacOptions if no filières exist
+          name: schoolData.name,
+          typeId: schoolData.typeId,
+          isOpen: schoolData.isOpen,
+          bacOptionNames: schoolData.filieresWithBacOptions.length > 0
+            ? Array.from(new Set(schoolData.filieresWithBacOptions.flatMap(f => f.bacOptions)))
+            : schoolData.defaultBacOptions,
           cityNames: schoolData.cities,
-          filieresWithBacOptions: schoolData.filieresWithBacOptions,
+          filieresWithBacOptions: schoolData.filieresWithBacOptions
         });
 
         results.push({

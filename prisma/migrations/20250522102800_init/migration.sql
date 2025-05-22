@@ -8,9 +8,6 @@ CREATE TYPE "UserStatus" AS ENUM ('ACTIVE', 'INACTIVE');
 CREATE TYPE "ApplicationStatus" AS ENUM ('PENDING', 'REGISTERED');
 
 -- CreateEnum
-CREATE TYPE "SchoolType" AS ENUM ('ENSA', 'ENCG', 'ENSAM', 'ISPITS', 'ISPM', 'ISMALA', 'ISSS', 'EST', 'FST', 'DENTAIRE', 'PHARMACIE', 'MEDECINE', 'IMS', 'CPGE', 'IFMBTP');
-
--- CreateEnum
 CREATE TYPE "ChoiceType" AS ENUM ('CITY', 'FILIERE');
 
 -- CreateTable
@@ -37,10 +34,25 @@ CREATE TABLE "utilisateurs" (
 );
 
 -- CreateTable
+CREATE TABLE "school_types" (
+    "id" TEXT NOT NULL,
+    "name" TEXT NOT NULL,
+    "code" TEXT NOT NULL,
+    "max_cities" INTEGER,
+    "requires_city_ranking" BOOLEAN NOT NULL DEFAULT false,
+    "max_filieres" INTEGER,
+    "allow_multiple_filieres_selection" BOOLEAN NOT NULL DEFAULT false,
+    "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updated_at" TIMESTAMP(3) NOT NULL,
+
+    CONSTRAINT "school_types_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
 CREATE TABLE "ecoles" (
     "id" TEXT NOT NULL,
     "nom" TEXT NOT NULL,
-    "type" "SchoolType" NOT NULL,
+    "type_id" TEXT NOT NULL,
     "est_ouverte" BOOLEAN NOT NULL DEFAULT false,
 
     CONSTRAINT "ecoles_pkey" PRIMARY KEY ("id")
@@ -124,6 +136,12 @@ CREATE TABLE "_FiliereBacOptions" (
 CREATE UNIQUE INDEX "utilisateurs_massar_code_key" ON "utilisateurs"("massar_code");
 
 -- CreateIndex
+CREATE UNIQUE INDEX "school_types_name_key" ON "school_types"("name");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "school_types_code_key" ON "school_types"("code");
+
+-- CreateIndex
 CREATE UNIQUE INDEX "candidatures_utilisateur_id_ecole_id_key" ON "candidatures"("utilisateur_id", "ecole_id");
 
 -- CreateIndex
@@ -146,6 +164,9 @@ CREATE INDEX "_FiliereBacOptions_B_index" ON "_FiliereBacOptions"("B");
 
 -- AddForeignKey
 ALTER TABLE "utilisateurs" ADD CONSTRAINT "utilisateurs_bacOptionId_fkey" FOREIGN KEY ("bacOptionId") REFERENCES "BacOption"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "ecoles" ADD CONSTRAINT "ecoles_type_id_fkey" FOREIGN KEY ("type_id") REFERENCES "school_types"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "filiere" ADD CONSTRAINT "filiere_ecole_id_fkey" FOREIGN KEY ("ecole_id") REFERENCES "ecoles"("id") ON DELETE RESTRICT ON UPDATE CASCADE;

@@ -3,7 +3,65 @@ import {PrismaClient, Role, UserStatus } from '@prisma/client';
 
 const prisma = new PrismaClient();
 
-
+// School types seeding
+const schoolTypes = [
+  {
+    name: "École Nationale des Sciences Appliquées",
+    code: "ENSA",
+    maxCities: 13,
+    requiresCityRanking: true,
+    maxFilieres: null,
+    allowMultipleFilieresSelection: false
+  },
+  {
+    name: "École Nationale Supérieure d'Arts et Métiers",
+    code: "ENSAM",
+    maxCities: 3,
+    requiresCityRanking: true,
+    maxFilieres: null,
+    allowMultipleFilieresSelection: false
+  },
+  {
+    name: "École Nationale de Commerce et de Gestion",
+    code: "ENCG",
+    maxCities: 12,
+    requiresCityRanking: true,
+    maxFilieres: null,
+    allowMultipleFilieresSelection: false
+  },
+  {
+    name: "Classes Préparatoires aux Grandes Écoles",
+    code: "CPGE",
+    maxCities: null,
+    requiresCityRanking: false,
+    maxFilieres: 8,
+    allowMultipleFilieresSelection: true
+  },
+  {
+    name: "Institut Spécialisé dans les Métiers de l'Aéronautique et de la Logistique Aéroportuaire",
+    code: "ISMALA",
+    maxCities: null,
+    requiresCityRanking: false,
+    maxFilieres: 3,
+    allowMultipleFilieresSelection: true
+  },
+  {
+    name: "Institut des Métiers de Sport",
+    code: "ISM",
+    maxCities: null,
+    requiresCityRanking: false,
+    maxFilieres: 2,
+    allowMultipleFilieresSelection: true
+  },
+  {
+    name: "Institut de Formation aux Métiers du Bâtiment et des Travaux Publics",
+    code: "IFMBTP",
+    maxCities: null,
+    requiresCityRanking: false,
+    maxFilieres: 3,
+    allowMultipleFilieresSelection: true
+  }
+];
 
 // Cities seeding
 const cities = [
@@ -30,15 +88,27 @@ const cities = [
   "Tata", "Taounate", "Tichka", "Zemmour", "Zerkten"
 ];
 
-
-
 // BacOptions seeding
-  const bacOptions = ["PC", "SVT", "SMA", "SMB", "STE", "STM", "ECO", "SGC"];  
-
+const bacOptions = ["PC", "SVT", "SMA", "SMB", "STE", "STM", "ECO", "SGC"];  
 
 async function main() {
+  // Seed school types
+  for (const schoolType of schoolTypes) {
+    const existingSchoolType = await prisma.schoolType.findUnique({
+      where: { code: schoolType.code }
+    });
 
-    // create BacOptions in the database
+    if (!existingSchoolType) {
+      await prisma.schoolType.create({
+        data: schoolType
+      });
+      console.log(`School type created: ${schoolType.name} (${schoolType.code})`);
+    } else {
+      console.log(`School type already exists: ${schoolType.name} (${schoolType.code})`);
+    }
+  }
+
+  // create BacOptions in the database
   for (const option of bacOptions) {
     const existingOption = await prisma.bacOption.findUnique({ where: { name: option } });
     if (!existingOption) {
@@ -69,7 +139,8 @@ async function main() {
     svtMark: 0,
     englishMark: 0,
     philosophyMark: 0
-};
+  };
+
   const existingSuperAdmin = await prisma.user.findUnique({
     where: {
       massarCode: DEFAULT_ADMIN.massarCode,
@@ -79,30 +150,31 @@ async function main() {
   if (!existingSuperAdmin && DEFAULT_ADMIN.massarCode && DEFAULT_ADMIN.password) {
     const hashedPassword = await bcrypt.hash(DEFAULT_ADMIN.password, 10)
 
-      await prisma.user.create({
-        data: {
-          ...DEFAULT_ADMIN,
-          password: hashedPassword,
-        },
-      });
+    await prisma.user.create({
+      data: {
+        ...DEFAULT_ADMIN,
+        password: hashedPassword,
+      },
+    });
 
-      console.log('Superadmin créé avec succe ');
-    }else {
+    console.log('Superadmin créé avec succe ');
+  } else {
     console.log('Le superadmin existe déjà');
   }
-    //   // create cities
-    for (const cityName of cities) {
-      const existingCity = await prisma.city.findFirst({ where: { name: cityName } });
-    
-      if (!existingCity) {
-        await prisma.city.create({ data: { name: cityName } });
-        console.log(`Ville ajoutée : ${cityName}`);
-      } else {
-        console.log(`Ville déjà existante : ${cityName}`);
-      }
-    }
 
+  // create cities
+  for (const cityName of cities) {
+    const existingCity = await prisma.city.findFirst({ where: { name: cityName } });
+  
+    if (!existingCity) {
+      await prisma.city.create({ data: { name: cityName } });
+      console.log(`Ville ajoutée : ${cityName}`);
+    } else {
+      console.log(`Ville déjà existante : ${cityName}`);
+    }
+  }
 }
+
 main()
   .catch((e) => {
     console.error(e);

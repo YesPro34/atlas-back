@@ -1,9 +1,9 @@
-import { SchoolType } from '@prisma/client';
+import { School as PrismaSchool } from '@prisma/client';
 
 export class School {
   id: string;
   name: string;
-  type: SchoolType;
+  typeId: string;
   isOpen: boolean;
   bacOptionsAllowed: { id: string; name: string }[];
   cities: { id: string; name: string }[];

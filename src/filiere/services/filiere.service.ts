@@ -7,8 +7,8 @@ import { FiliereRepository } from '../repositories/filiere.repository';
 export class FiliereService {
   constructor(private readonly filiereRepository: FiliereRepository) {}
 
-  async create(data: CreateFiliereDto) {
-    return await this.filiereRepository.create(data);
+  async create(createFiliereDto: CreateFiliereDto) {
+    return await this.filiereRepository.create(createFiliereDto);
   }
 
   async findAll() {
@@ -17,21 +17,25 @@ export class FiliereService {
 
   async findOne(id: string) {
     const filiere = await this.filiereRepository.findOne(id);
-    if (!filiere) throw new NotFoundException('Filière not found');
+    if (!filiere) {
+      throw new NotFoundException(`Filiere with ID ${id} not found`);
+    }
     return filiere;
   }
 
-  async update(id: string, data: UpdateFiliereDto) {
-    const exists = await this.filiereRepository.findOne(id);
-    if (!exists) throw new NotFoundException('Filière not found');
-
-    return this.filiereRepository.update(id, data);
+  async update(id: string, updateFiliereDto: UpdateFiliereDto) {
+    const filiere = await this.filiereRepository.findOne(id);
+    if (!filiere) {
+      throw new NotFoundException(`Filiere with ID ${id} not found`);
+    }
+    return await this.filiereRepository.update(id, updateFiliereDto);
   }
 
   async remove(id: string) {
-    const exists = await this.filiereRepository.findOne(id);
-    if (!exists) throw new NotFoundException('Filière not found');
-
-    return this.filiereRepository.remove(id);
+    const filiere = await this.filiereRepository.findOne(id);
+    if (!filiere) {
+      throw new NotFoundException(`Filiere with ID ${id} not found`);
+    }
+    await this.filiereRepository.remove(id);
   }
 }

@@ -9,11 +9,10 @@ import { AuthModule } from './auth/auth.module';
 import { ConfigModule } from '@nestjs/config';
 import { FiliereModule } from './filiere/filiere.module';
 import { CityModule } from './city/city.module';
-//import { ApplicationModule } from './application/application.module';
 import jwtConfig from './auth/config/jwt.config';
 import refreshConfig from './auth/config/refresh.config';
-//import { ApplicationController } from './application/controllers/application.controller';
 import { BacOptionModule } from './bac-option/bac-option.module';
+import { SchoolTypeModule } from './school-type/school-type.module';
 
 @Module({
   imports: [
@@ -28,8 +27,8 @@ import { BacOptionModule } from './bac-option/bac-option.module';
     ConfigModule.forFeature(refreshConfig),
     FiliereModule,
     CityModule,
-    //ApplicationModule,
     BacOptionModule,
+    SchoolTypeModule,
   ],
   controllers: [AppController, UserController],
   providers: [AppService],

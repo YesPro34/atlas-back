@@ -1,4 +1,4 @@
-import { IsNotEmpty, IsString, IsUUID } from 'class-validator';
+import { IsArray, IsNotEmpty, IsString, IsUUID } from 'class-validator';
 
 export class CreateFiliereDto {
   @IsString()
@@ -8,4 +8,8 @@ export class CreateFiliereDto {
   @IsNotEmpty({ message: 'Filière schoolId is required' })
   @IsUUID()
   schoolId: string;
+
+  @IsArray()
+  @IsString({ each: true })
+  bacOptionIds: string[];
 }

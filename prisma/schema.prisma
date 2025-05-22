@@ -33,10 +33,26 @@ model User {
   @@map("utilisateurs")
 }
 
+model SchoolType {
+  id                            String    @id @default(uuid())
+  name                          String    @unique
+  code                          String    @unique
+  maxCities                     Int?      @map("max_cities")
+  requiresCityRanking           Boolean   @default(false) @map("requires_city_ranking")
+  maxFilieres                   Int?      @map("max_filieres")
+  allowMultipleFilieresSelection Boolean  @default(false) @map("allow_multiple_filieres_selection")
+  schools                       School[]
+  createdAt                     DateTime  @default(now()) @map("created_at")
+  updatedAt                     DateTime  @updatedAt @map("updated_at")
+
+  @@map("school_types")
+}
+
 model School {
   id                String      @id @default(uuid())
   name              String      @map("nom")
-  type              SchoolType  @map("type")
+  typeId            String      @map("type_id")
+  type              SchoolType  @relation(fields: [typeId], references: [id])
   isOpen            Boolean     @default(false) @map("est_ouverte")
   filieres          Filiere[]
   applications      Application[]
@@ -118,22 +134,6 @@ enum UserStatus {
 enum ApplicationStatus {
   PENDING
   REGISTERED
-}
-
-enum SchoolType {
-  ENSA
-  ENCG
-  ENSAM
-  ISPITS
-  ISPM
-  ISMALA
-  ISSS
-  EST
-  FST
-  FMPD
-  IMS
-  CPGE
-  IFMBTP
 }
 
 enum ChoiceType {

@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { PrismaService } from 'src/prisma/prisma.service';
+import { PrismaService } from '../../prisma/prisma.service';
 import { CreateSchoolDto } from '../dto/create-school.dto';
 import { UpdateSchoolDto } from '../dto/update-school.dto';
 import { Prisma } from '@prisma/client';
@@ -8,75 +8,77 @@ import { Prisma } from '@prisma/client';
 export class SchoolRepository {
   constructor(private readonly prisma: PrismaService) {}
 
-  async create(data: CreateSchoolDto) {
-    const createData: Prisma.SchoolCreateInput = {
-      name: data.name,
-      type: data.type,
-      isOpen: data.isOpen,
-      bacOptionsAllowed: {
-        connect: data.bacOptionsAllowed.map((name) => ({ name })),
-      },
-    };
-
-    return await this.prisma.school.create({
-      data: createData,
+  private readonly defaultInclude = {
+    cities: true,
+    bacOptionsAllowed: true,
+    filieres: {
       include: {
         bacOptionsAllowed: true,
       },
+    },
+  } as const;
+
+  async create(createSchoolDto: CreateSchoolDto) {
+    const { cityIds, bacOptionIds, typeId, ...schoolData } = createSchoolDto;
+
+    return await this.prisma.school.create({
+      data: {
+        ...schoolData,
+        typeId,
+        cities: cityIds ? {
+          connect: cityIds.map((id) => ({ id })),
+        } : undefined,
+        bacOptionsAllowed: bacOptionIds ? {
+          connect: bacOptionIds.map((id) => ({ id })),
+        } : undefined,
+      },
+      include: this.defaultInclude,
     });
   }
 
   async findAll() {
     return await this.prisma.school.findMany({
-      include: {
-        bacOptionsAllowed: true,
-      },
+      include: this.defaultInclude,
     });
   }
 
   async findOne(id: string) {
     return await this.prisma.school.findUnique({
       where: { id },
-      include: {
-        bacOptionsAllowed: true,
-      },
+      include: this.defaultInclude,
     });
   }
 
   async findByName(name: string) {
     return await this.prisma.school.findFirst({
       where: { name },
-      include: {
-        bacOptionsAllowed: true,
-      },
+      include: this.defaultInclude,
     });
   }
 
-  async update(id: string, data: UpdateSchoolDto) {
-    const updateData: Prisma.SchoolUpdateInput = {
-      name: data.name,
-      type: data.type,
-      isOpen: data.isOpen,
-    };
-
-    if (data.bacOptionsAllowed) {
-      updateData.bacOptionsAllowed = {
-        set: [], // First disconnect all
-        connect: data.bacOptionsAllowed.map((name) => ({ name })),
-      };
-    }
+  async update(id: string, updateSchoolDto: UpdateSchoolDto) {
+    const { cityIds, bacOptionIds, typeId, ...schoolData } = updateSchoolDto;
 
     return await this.prisma.school.update({
       where: { id },
-      data: updateData,
-      include: {
-        bacOptionsAllowed: true,
+      data: {
+        ...schoolData,
+        typeId,
+        cities: cityIds ? {
+          set: cityIds.map((id) => ({ id })),
+        } : undefined,
+        bacOptionsAllowed: bacOptionIds ? {
+          set: bacOptionIds.map((id) => ({ id })),
+        } : undefined,
       },
+      include: this.defaultInclude,
     });
   }
 
   async remove(id: string) {
-    await this.prisma.school.delete({ where: { id } });
+    await this.prisma.school.delete({
+      where: { id },
+    });
   }
 
   async filterByBacOption(bacOptionName: string) {
@@ -89,9 +91,7 @@ export class SchoolRepository {
         },
         isOpen: true,
       },
-      include: {
-        bacOptionsAllowed: true,
-      },
+      include: this.defaultInclude,
     });
   }
 }
