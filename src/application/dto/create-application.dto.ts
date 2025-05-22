@@ -1,59 +1,46 @@
 // src/application/dto/create-application.dto.ts
-import { Type } from 'class-transformer';
 import {
-  IsArray,
-  IsNotEmpty,
-  IsNumber,
-  IsOptional,
   IsString,
-  IsUUID,
+  IsArray,
+  IsInt,
+  IsOptional,
+  Min,
   ValidateNested,
+  ArrayMinSize,
+  ArrayMaxSize,
+  IsEnum,
 } from 'class-validator';
+import { Type } from 'class-transformer';
+import { ChoiceType } from '@prisma/client';
 
-export class CitySchoolChoiceDto {
-  @IsUUID()
-  @IsNotEmpty()
-  villeEcoleId: string;
-
-  @IsNumber()
-  @IsNotEmpty()
+export class ApplicationChoiceDto {
+  @IsInt()
+  @Min(1)
   rank: number;
-}
 
-export class FiliereChoiceDto {
-  @IsUUID()
-  @IsNotEmpty()
-  filiereId: string;
+  @IsOptional()
+  @IsString()
+  cityId?: string;
 
-  @IsNumber()
-  @IsNotEmpty()
-  rank: number;
+  @IsOptional()
+  @IsString()
+  filiereId?: string;
+
+  @IsEnum(ChoiceType)
+  type: ChoiceType;
 }
 
 export class CreateApplicationDto {
-  @IsUUID()
-  @IsNotEmpty()
-  userId: string;
-
-  @IsUUID()
-  @IsNotEmpty()
+  @IsString()
   schoolId: string;
 
-  @IsOptional()
   @IsArray()
   @ValidateNested({ each: true })
-  @Type(() => CitySchoolChoiceDto)
-  citySchoolChoices?: CitySchoolChoiceDto[];
-
-  @IsOptional()
-  @IsArray()
-  @ValidateNested({ each: true })
-  @Type(() => FiliereChoiceDto)
-  filiereChoices?: FiliereChoiceDto[];
+  @Type(() => ApplicationChoiceDto)
+  choices: ApplicationChoiceDto[];
 }
 
 export class UpdateApplicationStatusDto {
-  @IsString()
-  @IsNotEmpty()
+  @IsEnum(['PENDING', 'REGISTERED'])
   status: 'PENDING' | 'REGISTERED';
 }

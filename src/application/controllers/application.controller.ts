@@ -1,28 +1,54 @@
-// import { Controller, Post, Body, Get, Param, Patch } from '@nestjs/common';
-// import { ApplicationService } from '../services/application.service';
-// import {
-//   CreateApplicationDto,
-//   UpdateApplicationStatusDto,
-// } from '../dto/create-application.dto';
-// @Controller('applications')
-// export class ApplicationController {
-//   constructor(private readonly applicationService: ApplicationService) {}
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Patch,
+  Param,
+  Delete,
+  ParseUUIDPipe,
+} from '@nestjs/common';
+import { ApplicationService } from '../services/application.service';
+import {
+  CreateApplicationDto,
+  UpdateApplicationStatusDto,
+} from '../dto/create-application.dto';
 
-//   @Post()
-//   create(@Body() createApplicationDto: CreateApplicationDto) {
-//     return this.applicationService.create(createApplicationDto);
-//   }
+@Controller('applications')
+export class ApplicationController {
+  constructor(private readonly applicationService: ApplicationService) {}
 
-// @Get('student/:studentId')
-// findAllByStudent(@Param('studentId') studentId: string) {
-//   return this.applicationService.findAllByStudent(studentId);
-// }
+  @Post()
+  create(
+    @Body() createApplicationDto: CreateApplicationDto,
+    @Body('userId') userId: string,
+  ) {
+    return this.applicationService.create(userId, createApplicationDto);
+  }
 
-// @Patch(':id/status')
-// updateStatus(
-//   @Param('id') id: string,
-//   @Body() updateStatusDto: UpdateApplicationStatusDto,
-// ) {
-//   return this.applicationService.updateStatus(id, updateStatusDto);
-// }
-//}
+  @Get()
+  findAll(@Body('userId') userId: string) {
+    return this.applicationService.findAll(userId);
+  }
+
+  @Get(':id')
+  findOne(@Param('id', ParseUUIDPipe) id: string) {
+    return this.applicationService.findOne(id);
+  }
+
+  @Patch(':id/status')
+  updateStatus(
+    @Param('id', ParseUUIDPipe) id: string,
+    @Body() updateStatusDto: UpdateApplicationStatusDto,
+  ) {
+    return this.applicationService.updateStatus(id, updateStatusDto);
+  }
+
+  @Delete(':id')
+  remove(
+    @Param('id', ParseUUIDPipe) id: string,
+    @Body('userId') userId: string,
+  ) {
+    return this.applicationService.remove(id, userId);
+  }
+}

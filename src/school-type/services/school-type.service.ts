@@ -1,4 +1,8 @@
-import { ConflictException, Injectable, NotFoundException } from '@nestjs/common';
+import {
+  ConflictException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { CreateSchoolTypeDto } from '../dto/create-school-type.dto';
 import { UpdateSchoolTypeDto } from '../dto/update-school-type.dto';
 import { SchoolTypeRepository } from '../repositories/school-type.repository';
@@ -9,9 +13,13 @@ export class SchoolTypeService {
 
   async create(createSchoolTypeDto: CreateSchoolTypeDto) {
     // Check if school type with same code exists
-    const existing = await this.schoolTypeRepository.findByCode(createSchoolTypeDto.code);
+    const existing = await this.schoolTypeRepository.findByCode(
+      createSchoolTypeDto.code,
+    );
     if (existing) {
-      throw new ConflictException(`School type with code ${createSchoolTypeDto.code} already exists`);
+      throw new ConflictException(
+        `School type with code ${createSchoolTypeDto.code} already exists`,
+      );
     }
 
     return await this.schoolTypeRepository.create(createSchoolTypeDto);
@@ -45,10 +53,17 @@ export class SchoolTypeService {
     }
 
     // If code is being updated, check if new code already exists
-    if (updateSchoolTypeDto.code && updateSchoolTypeDto.code !== schoolType.code) {
-      const existingWithCode = await this.schoolTypeRepository.findByCode(updateSchoolTypeDto.code);
+    if (
+      updateSchoolTypeDto.code &&
+      updateSchoolTypeDto.code !== schoolType.code
+    ) {
+      const existingWithCode = await this.schoolTypeRepository.findByCode(
+        updateSchoolTypeDto.code,
+      );
       if (existingWithCode) {
-        throw new ConflictException(`School type with code ${updateSchoolTypeDto.code} already exists`);
+        throw new ConflictException(
+          `School type with code ${updateSchoolTypeDto.code} already exists`,
+        );
       }
     }
 
@@ -63,9 +78,11 @@ export class SchoolTypeService {
     }
 
     if (schoolType.schools.length > 0) {
-      throw new ConflictException(`Cannot delete school type that has schools associated with it`);
+      throw new ConflictException(
+        `Cannot delete school type that has schools associated with it`,
+      );
     }
 
     await this.schoolTypeRepository.remove(id);
   }
-} 
+}

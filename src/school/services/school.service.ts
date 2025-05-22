@@ -53,7 +53,7 @@ export class SchoolService {
   async create(createSchoolDto: CreateSchoolDto) {
     // Verify that the school type exists
     await this.schoolTypeService.findOne(createSchoolDto.typeId);
-    
+
     const existingSchool = await this.findByName(createSchoolDto.name);
     if (existingSchool) {
       return new ConflictException('the School is already exist');
@@ -92,7 +92,7 @@ export class SchoolService {
   async remove(id: string) {
     // Verify that the school exists
     await this.findOne(id);
-    
+
     await this.schoolRepo.remove(id);
   }
 

@@ -4,4 +4,4 @@ export class CreateBacOptionDto {
   @IsString()
   @IsNotEmpty()
   name: string;
-} 
+}

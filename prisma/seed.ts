@@ -43,15 +43,15 @@ const schoolTypes = [
     maxCities: null,
     requiresCityRanking: false,
     maxFilieres: 3,
-    allowMultipleFilieresSelection: true
+    allowMultipleFilieresSelection: true,
   },
   {
     name: "Institut des Métiers de Sport",
-    code: "ISM",
+    code: "IMS",
     maxCities: null,
     requiresCityRanking: false,
     maxFilieres: 2,
-    allowMultipleFilieresSelection: true
+    allowMultipleFilieresSelection: true,
   },
   {
     name: "Institut de Formation aux Métiers du Bâtiment et des Travaux Publics",
@@ -59,8 +59,16 @@ const schoolTypes = [
     maxCities: null,
     requiresCityRanking: false,
     maxFilieres: 3,
-    allowMultipleFilieresSelection: true
-  }
+    allowMultipleFilieresSelection: true,
+  },
+  {
+    name: "Faculté de Médecine et de Pharmacie et de Dentaire",
+    code: "FMPD",
+    maxCities: null,
+    requiresCityRanking: false,
+    maxFilieres: 3,
+    allowMultipleFilieresSelection: true,
+}
 ];
 
 // Cities seeding

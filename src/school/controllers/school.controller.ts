@@ -58,7 +58,6 @@ interface ProcessedSchoolData {
   defaultBacOptions: string[];
 }
 
-
 // @UseGuards(JwtAuthGuard)
 @Controller('school')
 export class SchoolController {
@@ -122,34 +121,40 @@ export class SchoolController {
       // If this row has an Etablissement, it's a new school
       if (row.Etablissement) {
         currentSchool = row.Etablissement.trim().toUpperCase();
-        
+
         if (!schoolsMap.has(currentSchool)) {
           const bacOptions = row.bacOptionsAllowed
-            ? row.bacOptionsAllowed.split(',').map(opt => opt.trim()).filter(Boolean)
+            ? row.bacOptionsAllowed
+                .split(',')
+                .map((opt) => opt.trim())
+                .filter(Boolean)
             : [];
 
           try {
             // Look up the SchoolType by code
             const typeCode = row.Type?.trim().toUpperCase() || 'UNKNOWN';
-            const schoolType = await this.schoolTypeService.findByCode(typeCode);
+            const schoolType =
+              await this.schoolTypeService.findByCode(typeCode);
 
             // Initialize school data on first encounter
             schoolsMap.set(currentSchool, {
               name: currentSchool,
               typeId: schoolType.id,
               isOpen: row.isOpen?.trim().toUpperCase() === 'TRUE',
-              cities: row.Villes 
-                ? row.Villes.split(',').map(city => city.trim()).filter(Boolean)
+              cities: row.Villes
+                ? row.Villes.split(',')
+                    .map((city) => city.trim())
+                    .filter(Boolean)
                 : [],
               filieresWithBacOptions: [],
-              defaultBacOptions: bacOptions
+              defaultBacOptions: bacOptions,
             });
           } catch (error) {
             // If school type not found, log error and skip this school
             results.push({
               school: currentSchool,
               status: 'Error',
-              reason: `Invalid school type: ${row.Type?.trim().toUpperCase() || 'UNKNOWN'}`
+              reason: `Invalid school type: ${row.Type?.trim().toUpperCase() || 'UNKNOWN'}`,
             });
             currentSchool = null;
             continue;
@@ -162,23 +167,25 @@ export class SchoolController {
 
       // Process filières and their bac options for this row
       if (row.Filieres) {
-        const filieres = row.Filieres
-          .split(',')
-          .map(f => f.trim())
+        const filieres = row.Filieres.split(',')
+          .map((f) => f.trim())
           .filter(Boolean);
 
         const bacOptions = row.bacOptionsAllowed
-          ? row.bacOptionsAllowed.split(',').map(opt => opt.trim()).filter(Boolean)
+          ? row.bacOptionsAllowed
+              .split(',')
+              .map((opt) => opt.trim())
+              .filter(Boolean)
           : [];
 
         // Get the current school's data
         const schoolData = schoolsMap.get(currentSchool)!;
 
         // Add each filière with its specific bac options
-        filieres.forEach(filiere => {
+        filieres.forEach((filiere) => {
           schoolData.filieresWithBacOptions.push({
             name: filiere,
-            bacOptions: bacOptions
+            bacOptions: bacOptions,
           });
         });
       }
@@ -203,11 +210,18 @@ export class SchoolController {
           name: schoolData.name,
           typeId: schoolData.typeId,
           isOpen: schoolData.isOpen,
-          bacOptionNames: schoolData.filieresWithBacOptions.length > 0
-            ? Array.from(new Set(schoolData.filieresWithBacOptions.flatMap(f => f.bacOptions)))
-            : schoolData.defaultBacOptions,
+          bacOptionNames:
+            schoolData.filieresWithBacOptions.length > 0
+              ? Array.from(
+                  new Set(
+                    schoolData.filieresWithBacOptions.flatMap(
+                      (f) => f.bacOptions,
+                    ),
+                  ),
+                )
+              : schoolData.defaultBacOptions,
           cityNames: schoolData.cities,
-          filieresWithBacOptions: schoolData.filieresWithBacOptions
+          filieresWithBacOptions: schoolData.filieresWithBacOptions,
         });
 
         results.push({

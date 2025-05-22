@@ -1,235 +1,441 @@
-// // src/application/application.service.ts
-// import {
-//   Injectable,
-//   BadRequestException,
-//   NotFoundException,
-// } from '@nestjs/common';
-// import { PrismaService } from 'src/prisma/prisma.service';
-// import {
-//   CreateApplicationDto,
-//   UpdateApplicationStatusDto,
-// } from '../dto/create-application.dto';
+import {
+  Injectable,
+  BadRequestException,
+  NotFoundException,
+  ForbiddenException,
+} from '@nestjs/common';
+import { PrismaService } from '../../prisma/prisma.service';
+import {
+  CreateApplicationDto,
+  UpdateApplicationStatusDto,
+} from '../dto/create-application.dto';
+import { ApplicationStatus, ChoiceType, Prisma } from '@prisma/client';
 
-// @Injectable()
-// export class ApplicationService {
-//   constructor(private prisma: PrismaService) {}
+const SCIENTIFIC_BAC_OPTIONS = ['PC', 'SVT', 'SMA', 'SMB', 'STM', 'STE'];
+const MANAGEMENT_BAC_OPTIONS = ['ECO', 'SGC'];
+const CPGE_ALLOWED_BAC_OPTIONS = ['PC', 'SVT', 'SMA', 'SMB'];
 
-//   async create(createApplicationDto: CreateApplicationDto) {
-//     const { userId, schoolId, citySchoolChoices, filiereChoices } =
-//       createApplicationDto;
+@Injectable()
+export class ApplicationService {
+  constructor(private readonly prisma: PrismaService) {}
 
-//     // Get the school type to determine which application flow to use
-//     const school = await this.prisma.school.findUnique({
-//       where: { id: schoolId },
-//       select: { type: true },
-//     });
+  private async validateIsmalaApplication(
+    choices: CreateApplicationDto['choices'],
+    userBacOption: string,
+    filieres: any[],
+  ) {
+    // For ECO and SGC students
+    if (MANAGEMENT_BAC_OPTIONS.includes(userBacOption)) {
+      // Find the management filière
+      const managementFiliere = filieres.find(
+        (f) =>
+          f.name.toLowerCase().includes('gestion') ||
+          f.name.toLowerCase().includes('management'),
+      );
 
-//     if (!school) {
-//       throw new NotFoundException('School not found');
-//     }
+      if (!managementFiliere) {
+        throw new BadRequestException(
+          'Management filière not found for ISMALA',
+        );
+      }
 
-//     // Check if student exists and get bac option
-//     const user = await this.prisma.user.findUnique({
-//       where: { id: userId },
-//       select: { bacOption: true, role: true },
-//     });
+      // Validate that all choices are for the management filière
+      if (choices.length !== 3) {
+        throw new BadRequestException(
+          'ECO and SGC students must select the management filière exactly 3 times',
+        );
+      }
 
-//     if (!user) {
-//       throw new NotFoundException('User not found');
-//     }
+      for (const choice of choices) {
+        if (choice.filiereId !== managementFiliere.id) {
+          throw new BadRequestException(
+            'ECO and SGC students can only select the management filière',
+          );
+        }
+      }
+    }
+    // For scientific bac options
+    else if (SCIENTIFIC_BAC_OPTIONS.includes(userBacOption)) {
+      // Validate that choices are different
+      const uniqueFilieres = new Set(choices.map((c) => c.filiereId));
+      if (uniqueFilieres.size !== choices.length) {
+        throw new BadRequestException(
+          'Scientific bac students must select different filières',
+        );
+      }
+    } else {
+      throw new BadRequestException(
+        `Bac option ${userBacOption} is not allowed for ISMALA`,
+      );
+    }
+  }
 
-//     if (user.role !== 'STUDENT') {
-//       throw new BadRequestException('Only students can create applications');
-//     }
+  private async validateCpgeApplication(
+    choices: CreateApplicationDto['choices'],
+    userBacOption: string,
+    filieres: any[],
+  ) {
+    // For ECO and SGC students
+    if (MANAGEMENT_BAC_OPTIONS.includes(userBacOption)) {
+      // Find the ECT filière
+      const ectFiliere = filieres.find(
+        (f) =>
+          f.name.toLowerCase().includes('ect') ||
+          f.name.toLowerCase().includes('économique et commercial'),
+      );
 
-//     const studentBacOption = user.bacOption;
-//     if (!studentBacOption) {
-//       throw new BadRequestException('Student must have a BAC option to apply');
-//     }
+      if (!ectFiliere) {
+        throw new BadRequestException('ECT filière not found for CPGE');
+      }
 
-//     // Check if application already exists
-//     const existingApplication = await this.prisma.application.findUnique({
-//       where: {
-//         userId_schoolId: {
-//           userId,
-//           schoolId,
-//         },
-//       },
-//     });
+      // Validate that all choices are for the ECT filière
+      for (const choice of choices) {
+        if (choice.filiereId !== ectFiliere.id) {
+          throw new BadRequestException(
+            'ECO and SGC students can only select the ECT filière',
+          );
+        }
+      }
+    }
+    // For scientific bac options
+    else if (CPGE_ALLOWED_BAC_OPTIONS.includes(userBacOption)) {
+      // They can choose any filière except ECT
+      const ectFiliere = filieres.find(
+        (f) =>
+          f.name.toLowerCase().includes('ect') ||
+          f.name.toLowerCase().includes('économique et commercial'),
+      );
 
-//     if (existingApplication) {
-//       throw new BadRequestException(
-//         'Student has already applied to this school',
-//       );
-//     }
+      if (ectFiliere) {
+        for (const choice of choices) {
+          if (choice.filiereId === ectFiliere.id) {
+            throw new BadRequestException(
+              'Scientific bac students cannot select the ECT filière',
+            );
+          }
+        }
+      }
+    } else {
+      throw new BadRequestException(
+        `Bac option ${userBacOption} is not allowed for CPGE`,
+      );
+    }
+  }
 
-//     try {
-//       // Start a transaction
-//       return await this.prisma.$transaction(async (prisma) => {
-//         // Create the base application
-//         const application = await prisma.application.create({
-//           data: {
-//             userId,
-//             schoolId,
-//             status: 'PENDING',
-//             applicationDate: new Date(),
-//           },
-//         });
+  async create(userId: string, createApplicationDto: CreateApplicationDto) {
+    const { schoolId, choices } = createApplicationDto;
 
-//         // Handle city-based school choices (ENSA, ENCG, ENSAM)
-//         if (['ENSA', 'ENCG', 'ENSAM'].includes(school.type)) {
-//           if (!citySchoolChoices || citySchoolChoices.length === 0) {
-//             throw new BadRequestException(
-//               'City school choices are required for this school type',
-//             );
-//           }
+    // Get the school and its type to determine validation rules
+    const school = await this.prisma.school.findUnique({
+      where: { id: schoolId },
+      include: {
+        type: true,
+        bacOptionsAllowed: true,
+        filieres: true,
+      },
+    });
 
-//           // Validate that student's BAC option is allowed for this school type
-//           const schoolDetails = await prisma.school.findUnique({
-//             where: { id: schoolId },
-//             select: { bacOptionsAllowed: true },
-//           });
+    if (!school) {
+      throw new NotFoundException('School not found');
+    }
 
-//           if (!schoolDetails?.bacOptionsAllowed.includes(studentBacOption)) {
-//             throw new BadRequestException(
-//               `Your BAC option ${studentBacOption} is not allowed for this school type.`,
-//             );
-//           }
+    if (!school.isOpen) {
+      throw new BadRequestException('School is not open for applications');
+    }
 
-//           // Verify all citySchools belong to the selected school
-//           for (const choice of citySchoolChoices) {
-//             const citySchool = await prisma.citySchool.findUnique({
-//               where: { id: choice.villeEcoleId },
-//               select: { schoolId: true },
-//             });
+    // Get user with their bac option
+    const user = await this.prisma.user.findUnique({
+      where: { id: userId },
+      include: {
+        bacOption: true,
+      },
+    });
 
-//             if (!citySchool || citySchool.schoolId !== schoolId) {
-//               throw new BadRequestException(
-//                 `City-school with ID ${choice.villeEcoleId} does not belong to the selected school.`,
-//               );
-//             }
-//           }
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
 
-//           // Create city school choices
-//           await prisma.applicationChoice.createMany({
-//             data: citySchoolChoices.map((choice) => ({
-//               applicationId: application.id,
-//               citySchoolId: choice.villeEcoleId,
-//               rank: choice.rank,
-//             })),
-//           });
-//         }
-//         // Handle filière-based school choices (ISPITS, ISPM, ISMALA, etc.)
-//         else if (['ISPITS', 'ISPM', 'ISMALA', 'ISSS'].includes(school.type)) {
-//           if (!filiereChoices || filiereChoices.length === 0) {
-//             throw new BadRequestException(
-//               'Filière choices are required for this school type',
-//             );
-//           }
+    if (user.role !== 'STUDENT') {
+      throw new ForbiddenException('Only students can create applications');
+    }
 
-//           // For each filière choice, check if student's BAC option is allowed
-//           for (const choice of filiereChoices) {
-//             const filiere = await prisma.filiere.findUnique({
-//               where: { id: choice.filiereId },
-//               select: { bacOptionsAllowed: true, schoolId: true },
-//             });
+    if (!user.bacOption) {
+      throw new BadRequestException('Student must have a BAC option to apply');
+    }
 
-//             // Ensure filière belongs to the selected school
-//             if (!filiere || filiere.schoolId !== schoolId) {
-//               throw new BadRequestException(
-//                 `Filière with ID ${choice.filiereId} does not belong to the selected school.`,
-//               );
-//             }
+    // Check if student's bac option is allowed for this school
+    const isAllowedBacOption = school.bacOptionsAllowed.some(
+      (option) => option.id === user.bacOption!.id,
+    );
 
-//             // Check if student's BAC option is allowed for this filière
-//             if (!filiere.bacOptionsAllowed.includes(studentBacOption)) {
-//               throw new BadRequestException(
-//                 `Your BAC option ${studentBacOption} is not allowed for filière ID: ${choice.filiereId}.`,
-//               );
-//             }
-//           }
+    if (!isAllowedBacOption) {
+      throw new BadRequestException(
+        `Your BAC option ${user.bacOption.name} is not allowed for this school`,
+      );
+    }
 
-//           // Create filière choices
-//           await prisma.applicationChoice.createMany({
-//             data: filiereChoices.map((choice) => ({
-//               applicationId: application.id,
-//               filiereId: choice.filiereId,
-//               rank: choice.rank,
-//             })),
-//           });
-//         } else {
-//           throw new BadRequestException(
-//             "Invalid application: The school type doesn't have a supported application flow.",
-//           );
-//         }
+    // Check if application already exists
+    const existingApplication = await this.prisma.application.findUnique({
+      where: {
+        userId_schoolId: {
+          userId,
+          schoolId,
+        },
+      },
+    });
 
-//         return {
-//           message: 'Application submitted successfully',
-//           applicationId: application.id,
-//         };
-//       });
-//     } catch (error) {
-//       // Since we're using $transaction, we don't need to manually delete the application
-//       // on error as the transaction will be rolled back
-//       if (
-//         error instanceof BadRequestException ||
-//         error instanceof NotFoundException
-//       ) {
-//         throw error;
-//       }
-//       throw new BadRequestException(
-//         'Failed to create application: ' + error.message,
-//       );
-//     }
-//   }
+    if (existingApplication) {
+      throw new BadRequestException('You have already applied to this school');
+    }
 
-//   async findAllByStudent(userId: string) {
-//     return this.prisma.application.findMany({
-//       where: { userId },
-//       include: {
-//         school: {
-//           select: {
-//             id: true,
-//             name: true,
-//             type: true,
-//           },
-//         },
-//         choices: {
-//           include: {
-//             citySchool: {
-//               include: {
-//                 city: true,
-//                 school: {
-//                   select: {
-//                     name: true,
-//                   },
-//                 },
-//               },
-//             },
-//             filiere: true,
-//           },
-//           orderBy: {
-//             rank: 'asc',
-//           },
-//         },
-//       },
-//     });
-//   }
+    // Special validation for ISMALA and CPGE
+    if (school.type.code === 'ISMALA') {
+      await this.validateIsmalaApplication(
+        choices,
+        user.bacOption.name,
+        school.filieres,
+      );
+    } else if (school.type.code === 'CPGE') {
+      await this.validateCpgeApplication(
+        choices,
+        user.bacOption.name,
+        school.filieres,
+      );
+    }
 
-//   async updateStatus(id: string, updateStatusDto: UpdateApplicationStatusDto) {
-//     const application = await this.prisma.application.findUnique({
-//       where: { id },
-//     });
+    // Validate choices based on school type
+    await this.validateChoices(school, choices);
 
-//     if (!application) {
-//       throw new NotFoundException('Application not found');
-//     }
+    try {
+      return await this.prisma.$transaction(async (prisma) => {
+        // Create the application
+        const application = await prisma.application.create({
+          data: {
+            userId,
+            schoolId,
+            status: ApplicationStatus.PENDING,
+          },
+        });
 
-//     await this.prisma.application.update({
-//       where: { id },
-//       data: { status: updateStatusDto.status },
-//     });
+        // Create all choices
+        await prisma.applicationChoice.createMany({
+          data: choices.map((choice) => ({
+            applicationId: application.id,
+            rank: choice.rank,
+            cityId: choice.cityId,
+            filiereId: choice.filiereId,
+            type: choice.type,
+          })),
+        });
 
-//     return { message: 'Application status updated successfully' };
-//   }
-// }
+        return this.findOne(application.id);
+      });
+    } catch (error) {
+      throw new BadRequestException(
+        'Failed to create application: ' + error.message,
+      );
+    }
+  }
+
+  private async validateChoices(
+    school: Prisma.SchoolGetPayload<{
+      include: { type: true; bacOptionsAllowed: true };
+    }>,
+    choices: CreateApplicationDto['choices'],
+  ) {
+    const { type: schoolType } = school;
+
+    // Validate number of choices
+    if (choices.length === 0) {
+      throw new BadRequestException('At least one choice is required');
+    }
+
+    // For schools with city ranking
+    if (schoolType.requiresCityRanking) {
+      if (schoolType.maxCities && choices.length > schoolType.maxCities) {
+        throw new BadRequestException(
+          `Maximum ${schoolType.maxCities} cities can be selected for ${school.name}`,
+        );
+      }
+
+      // Validate all choices are cities
+      for (const choice of choices) {
+        if (choice.type !== ChoiceType.CITY) {
+          throw new BadRequestException(
+            'Only city choices are allowed for this school type',
+          );
+        }
+
+        // Verify city exists and is associated with the school
+        const citySchool = await this.prisma.school.findFirst({
+          where: {
+            id: school.id,
+            cities: {
+              some: {
+                id: choice.cityId,
+              },
+            },
+          },
+        });
+
+        if (!citySchool) {
+          throw new BadRequestException(
+            `City with ID ${choice.cityId} is not associated with this school`,
+          );
+        }
+      }
+    }
+    // For schools with filière selection
+    else if (schoolType.maxFilieres) {
+      if (choices.length > schoolType.maxFilieres) {
+        throw new BadRequestException(
+          `Maximum ${schoolType.maxFilieres} filières can be selected for ${school.name}`,
+        );
+      }
+
+      // Validate all choices are filières
+      for (const choice of choices) {
+        if (choice.type !== ChoiceType.FILIERE) {
+          throw new BadRequestException(
+            'Only filière choices are allowed for this school type',
+          );
+        }
+
+        // Verify filière exists and belongs to the school
+        const filiere = await this.prisma.filiere.findFirst({
+          where: {
+            id: choice.filiereId,
+            schoolId: school.id,
+          },
+        });
+
+        if (!filiere) {
+          throw new BadRequestException(
+            `Filière with ID ${choice.filiereId} does not belong to this school`,
+          );
+        }
+      }
+
+      // Check if multiple selections of the same filière are allowed
+      if (!schoolType.allowMultipleFilieresSelection) {
+        const uniqueFilieres = new Set(choices.map((c) => c.filiereId));
+        if (uniqueFilieres.size !== choices.length) {
+          throw new BadRequestException(
+            'Multiple selections of the same filière are not allowed for this school',
+          );
+        }
+      }
+    }
+
+    // Validate ranks are unique and sequential
+    const ranks = choices.map((c) => c.rank);
+    const uniqueRanks = new Set(ranks);
+    if (uniqueRanks.size !== ranks.length) {
+      throw new BadRequestException('Each choice must have a unique rank');
+    }
+
+    // Check if ranks are sequential starting from 1
+    ranks.sort((a, b) => a - b);
+    for (let i = 0; i < ranks.length; i++) {
+      if (ranks[i] !== i + 1) {
+        throw new BadRequestException(
+          'Ranks must be sequential starting from 1',
+        );
+      }
+    }
+  }
+
+  async findAll(userId: string) {
+    return await this.prisma.application.findMany({
+      where: { userId },
+      include: {
+        school: {
+          include: {
+            type: true,
+          },
+        },
+        choices: {
+          include: {
+            city: true,
+            filiere: true,
+          },
+          orderBy: {
+            rank: 'asc',
+          },
+        },
+      },
+    });
+  }
+
+  async findOne(id: string) {
+    const application = await this.prisma.application.findUnique({
+      where: { id },
+      include: {
+        school: {
+          include: {
+            type: true,
+          },
+        },
+        choices: {
+          include: {
+            city: true,
+            filiere: true,
+          },
+          orderBy: {
+            rank: 'asc',
+          },
+        },
+        user: {
+          include: {
+            bacOption: true,
+          },
+        },
+      },
+    });
+
+    if (!application) {
+      throw new NotFoundException('Application not found');
+    }
+
+    return application;
+  }
+
+  async updateStatus(id: string, updateStatusDto: UpdateApplicationStatusDto) {
+    const application = await this.findOne(id);
+
+    return await this.prisma.application.update({
+      where: { id },
+      data: {
+        status: updateStatusDto.status,
+      },
+      include: {
+        school: true,
+        choices: {
+          include: {
+            city: true,
+            filiere: true,
+          },
+          orderBy: {
+            rank: 'asc',
+          },
+        },
+      },
+    });
+  }
+
+  async remove(id: string, userId: string) {
+    const application = await this.findOne(id);
+
+    if (application.userId !== userId) {
+      throw new ForbiddenException('You can only delete your own applications');
+    }
+
+    if (application.status === ApplicationStatus.REGISTERED) {
+      throw new BadRequestException('Cannot delete a registered application');
+    }
+
+    await this.prisma.application.delete({
+      where: { id },
+    });
+  }
+}

@@ -48,4 +48,4 @@ export class BacOptionController {
   async remove(@Param('id') id: string) {
     await this.bacOptionService.remove(id);
   }
-} 
+}

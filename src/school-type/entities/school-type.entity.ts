@@ -8,4 +8,4 @@ export class SchoolType {
   allowMultipleFilieresSelection: boolean;
   createdAt: Date;
   updatedAt: Date;
-} 
+}

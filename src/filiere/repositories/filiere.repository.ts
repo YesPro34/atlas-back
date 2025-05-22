@@ -12,10 +12,10 @@ export class FiliereRepository {
       data: {
         name: createFiliereDto.name,
         school: {
-          connect: { id: createFiliereDto.schoolId }
+          connect: { id: createFiliereDto.schoolId },
         },
         bacOptionsAllowed: {
-          connect: createFiliereDto.bacOptionIds.map(id => ({ id })),
+          connect: createFiliereDto.bacOptionIds.map((id) => ({ id })),
         },
       },
       include: {
@@ -53,14 +53,14 @@ export class FiliereRepository {
 
     if (updateFiliereDto.schoolId) {
       data.school = {
-        connect: { id: updateFiliereDto.schoolId }
+        connect: { id: updateFiliereDto.schoolId },
       };
     }
 
     if (updateFiliereDto.bacOptionIds) {
       data.bacOptionsAllowed = {
         set: [], // First disconnect all existing connections
-        connect: updateFiliereDto.bacOptionIds.map(id => ({ id })),
+        connect: updateFiliereDto.bacOptionIds.map((id) => ({ id })),
       };
     }
 

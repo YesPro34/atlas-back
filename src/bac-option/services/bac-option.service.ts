@@ -38,4 +38,4 @@ export class BacOptionService {
     }
     await this.bacOptionRepository.remove(id);
   }
-} 
+}

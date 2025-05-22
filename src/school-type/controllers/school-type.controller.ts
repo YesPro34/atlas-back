@@ -56,4 +56,4 @@ export class SchoolTypeController {
   async remove(@Param('id') id: string) {
     await this.schoolTypeService.remove(id);
   }
-} 
+}

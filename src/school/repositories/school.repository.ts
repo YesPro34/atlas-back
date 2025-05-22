@@ -25,12 +25,16 @@ export class SchoolRepository {
       data: {
         ...schoolData,
         typeId,
-        cities: cityIds ? {
-          connect: cityIds.map((id) => ({ id })),
-        } : undefined,
-        bacOptionsAllowed: bacOptionIds ? {
-          connect: bacOptionIds.map((id) => ({ id })),
-        } : undefined,
+        cities: cityIds
+          ? {
+              connect: cityIds.map((id) => ({ id })),
+            }
+          : undefined,
+        bacOptionsAllowed: bacOptionIds
+          ? {
+              connect: bacOptionIds.map((id) => ({ id })),
+            }
+          : undefined,
       },
       include: this.defaultInclude,
     });
@@ -64,12 +68,16 @@ export class SchoolRepository {
       data: {
         ...schoolData,
         typeId,
-        cities: cityIds ? {
-          set: cityIds.map((id) => ({ id })),
-        } : undefined,
-        bacOptionsAllowed: bacOptionIds ? {
-          set: bacOptionIds.map((id) => ({ id })),
-        } : undefined,
+        cities: cityIds
+          ? {
+              set: cityIds.map((id) => ({ id })),
+            }
+          : undefined,
+        bacOptionsAllowed: bacOptionIds
+          ? {
+              set: bacOptionIds.map((id) => ({ id })),
+            }
+          : undefined,
       },
       include: this.defaultInclude,
     });
