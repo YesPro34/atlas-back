@@ -117,4 +117,26 @@ export class UserService {
     }
     return user.bacOption;
   }
+
+  async findUserProfile(userId: string) {
+    const user = await this.prisma.user.findUnique({
+      where: { id: userId },
+      select: {
+        id: true,
+        massarCode: true,
+        firstName: true,
+        lastName: true,
+        status: true,
+        bacOption: true,
+        city: true,
+
+      }
+    });
+
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+
+    return user;
+  }
 }

@@ -414,6 +414,34 @@ export class ApplicationService {
     });
   }
 
+  async findAllApplications() {
+    return await this.prisma.application.findMany({
+      include: {
+        school: {
+          select: {
+            name: true,
+          },
+        },
+        user: {
+          select: {
+            firstName: true,
+            lastName: true,
+            bacOption: true,
+          },
+        },
+        choices: {
+          include: {
+            city: true,
+            filiere: true,
+          },
+          orderBy: {
+            rank: 'asc',
+          },
+        },
+      },
+    });
+  }
+
   async findOne(id: string) {
     const application = await this.prisma.application.findUnique({
       where: { id },

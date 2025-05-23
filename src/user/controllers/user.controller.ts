@@ -91,6 +91,11 @@ export class UserController {
     return this.userService.findSchoolsByBacOption(bacOption);
   }
 
+  @Get('/profile/:id')
+  async getUserProfile(@Param('id') id: string) {
+    return this.userService.findUserProfile(id);
+  }
+
   @Post('upload-excel')
   @HttpCode(201)
   @UseInterceptors(

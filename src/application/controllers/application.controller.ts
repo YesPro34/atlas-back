@@ -31,6 +31,11 @@ export class ApplicationController {
     return this.applicationService.findAll(userId);
   }
 
+  @Get("all")
+  findAllApplications() {
+    return this.applicationService.findAllApplications();
+  }
+
   @Get(':id')
   findOne(@Param('id') id: string) {
     return this.applicationService.findOne(id);
