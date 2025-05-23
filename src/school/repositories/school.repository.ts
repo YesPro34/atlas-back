@@ -11,6 +11,7 @@ export class SchoolRepository {
   private readonly defaultInclude = {
     cities: true,
     bacOptionsAllowed: true,
+    type: true,
     filieres: {
       include: {
         bacOptionsAllowed: true,

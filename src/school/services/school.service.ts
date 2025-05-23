@@ -145,4 +145,8 @@ export class SchoolService {
 
     return new School(createdSchool);
   }
+
+  async filterByBacOption(bacOption: string) {
+    return await this.schoolRepo.filterByBacOption(bacOption);
+  }
 }

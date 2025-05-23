@@ -239,4 +239,9 @@ export class SchoolController {
 
     return { summary: results };
   }
+
+  @Get('filter/:bacOption')
+  async getSchoolsByBacOption(@Param('bacOption') bacOption: string) {
+    return await this.schoolService.filterByBacOption(bacOption);
+  }
 }

@@ -185,7 +185,9 @@ export class ApplicationService {
     });
 
     if (existingApplication) {
-      throw new BadRequestException('You have already applied to this school');
+      throw new BadRequestException(
+        'Vous avez déjà postulé à cette école',
+      );
     }
 
     // Special validation for ISMALA and CPGE

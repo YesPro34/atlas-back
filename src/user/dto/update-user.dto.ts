@@ -36,8 +36,8 @@ export class UpdateUserDto {
   status: UserStatus;
 
   @IsOptional()
-  @IsEnum(BacOptionEntity, { message: 'Invalid BAC option' })
-  bacOption: BacOptionEntity;
+  @IsString()
+  bacOptionId: string;
 
   @IsOptional()
   @IsString()
