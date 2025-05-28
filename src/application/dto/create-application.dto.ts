@@ -45,3 +45,10 @@ export class UpdateApplicationStatusDto {
   @IsEnum(['PENDING', 'REGISTERED'])
   status: 'PENDING' | 'REGISTERED';
 }
+
+export class UpdateApplicationChoicesDto {
+  @IsArray()
+  @ValidateNested({ each: true })
+  @Type(() => ApplicationChoiceDto)
+  choices: ApplicationChoiceDto[];
+}

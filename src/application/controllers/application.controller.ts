@@ -12,6 +12,7 @@ import {
 import { ApplicationService } from '../services/application.service';
 import {
   CreateApplicationDto,
+  UpdateApplicationChoicesDto,
   UpdateApplicationStatusDto,
 } from '../dto/create-application.dto';
 
@@ -47,6 +48,11 @@ export class ApplicationController {
     @Body() updateStatusDto: UpdateApplicationStatusDto,
   ) {
     return this.applicationService.updateStatus(id, updateStatusDto);
+  }
+
+  @Patch(':id/update')
+  updateApplicationChoices(@Param('id', ParseUUIDPipe) id: string, @Body() updateApplicationChoicesDto: UpdateApplicationChoicesDto) {
+    return this.applicationService.updateApplicationChoices(id, updateApplicationChoicesDto);
   }
 
   @Delete(':id')

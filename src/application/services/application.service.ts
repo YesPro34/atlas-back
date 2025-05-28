@@ -8,6 +8,7 @@ import { PrismaService } from '../../prisma/prisma.service';
 import {
   CreateApplicationDto,
   UpdateApplicationStatusDto,
+  UpdateApplicationChoicesDto,
 } from '../dto/create-application.dto';
 import { ApplicationStatus, ChoiceType, Prisma } from '@prisma/client';
 
@@ -512,5 +513,101 @@ export class ApplicationService {
     await this.prisma.application.delete({
       where: { id },
     });
+  }
+
+  async updateApplicationChoices(id: string, updateApplicationChoicesDto: UpdateApplicationChoicesDto) {
+    const application = await this.findOne(id);
+
+    if (application.status === ApplicationStatus.REGISTERED) {
+      throw new BadRequestException('Cannot update choices for a registered application');
+    }
+
+    const { choices } = updateApplicationChoicesDto;
+
+    // Get the school and its type to determine validation rules
+    const school = await this.prisma.school.findUnique({
+      where: { id: application.schoolId },
+      include: {
+        type: true,
+        bacOptionsAllowed: true,
+        filieres: true,
+      },
+    });
+
+    if (!school) {
+      throw new NotFoundException('School not found');
+    }
+
+    // Get user with their bac option
+    const user = await this.prisma.user.findUnique({
+      where: { id: application.userId },
+      include: {
+        bacOption: true,
+      },
+    });
+
+    if (!user || !user.bacOption) {
+      throw new BadRequestException('User or user bac option not found');
+    }
+
+    // Validate the new choices
+    await this.validateChoices(school, choices);
+
+    // Special validation for ISMALA and CPGE
+    if (school.type.code === 'ISMALA') {
+      await this.validateIsmalaApplication(choices, user.bacOption.name, school.filieres);
+    } else if (school.type.code === 'CPGE') {
+      await this.validateCpgeApplication(choices, user.bacOption.name, school.filieres);
+    }
+
+    try {
+      return await this.prisma.$transaction(async (prisma) => {
+        // Delete existing choices
+        await prisma.applicationChoice.deleteMany({
+          where: { applicationId: id },
+        });
+
+        // Create new choices
+        await prisma.applicationChoice.createMany({
+          data: choices.map((choice) => ({
+            applicationId: id,
+            rank: choice.rank,
+            cityId: choice.cityId,
+            filiereId: choice.filiereId,
+            type: choice.type,
+          })),
+        });
+
+        // Return updated application with all relations
+        return await prisma.application.findUnique({
+          where: { id },
+          include: {
+            school: {
+              include: {
+                type: true,
+              },
+            },
+            choices: {
+              include: {
+                city: true,
+                filiere: true,
+              },
+              orderBy: {
+                rank: 'asc',
+              },
+            },
+            user: {
+              include: {
+                bacOption: true,
+              },
+            },
+          },
+        });
+      });
+    } catch (error) {
+      throw new BadRequestException(
+        'Failed to update application choices: ' + error.message,
+      );
+    }
   }
 }
