@@ -11,6 +11,7 @@ import { UpdateUserDto } from '../dto/update-user.dto';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { BacOption } from '@prisma/client';
 import { SchoolRepository } from 'src/school/repositories/school.repository';
+import { UpdateGradesDto } from '../dto/update-grades.dto';
 
 @Injectable()
 export class UserService {
@@ -129,7 +130,13 @@ export class UserService {
         status: true,
         bacOption: true,
         city: true,
-
+        nationalMark: true,
+        generalMark: true,
+        mathMark: true,
+        physicMark: true,
+        svtMark: true,
+        englishMark: true,
+        philosophyMark: true,
       }
     });
 
@@ -138,5 +145,19 @@ export class UserService {
     }
 
     return user;
+  }
+
+  async updateGrades(userId: string, updateGradesDto: UpdateGradesDto) {
+    const user = await this.userRepository.findById(userId);
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+
+    await this.prisma.user.update({
+      where: { id: userId },
+      data: updateGradesDto,
+    });
+
+    return { message: 'Grades updated successfully' };
   }
 }

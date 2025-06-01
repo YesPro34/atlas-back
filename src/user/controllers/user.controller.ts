@@ -10,10 +10,11 @@ import {
   UploadedFile,
   UseInterceptors,
   Request,
+  Put,
 } from '@nestjs/common';
 import { CreateUserDto } from '../dto/create-user.dto';
 import { UserService } from '../services/user.service';
-// import { JwtAuthGuard } from 'src/auth/guards/jwt.guard';
+import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.guard';
 import { FileInterceptor } from '@nestjs/platform-express';
 import * as XLSX from 'xlsx';
 import { diskStorage } from 'multer';
@@ -23,6 +24,8 @@ import { UpdateUserDto } from '../dto/update-user.dto';
 import { Roles } from 'src/common/decorators/roles.decorator';
 import { BacOptionEntity } from 'src/bac-option/bacOption.entity';
 import { PrismaService } from 'src/prisma/prisma.service';
+import { UpdateGradesDto } from '../dto/update-grades.dto';
+import { UseGuards } from '@nestjs/common';
 
 interface ExcelRow {
   mot_de_passe: string;
@@ -154,5 +157,14 @@ export class UserController {
     }
 
     return { summary: results };
+  }
+
+  @Put('update-grades/:id')
+  @UseGuards(JwtAuthGuard)
+  async updateGrades(
+    @Param('id') id: string,
+    @Body() updateGradesDto: UpdateGradesDto,
+  ) {
+    return await this.userService.updateGrades(id, updateGradesDto);
   }
 }

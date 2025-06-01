@@ -19,6 +19,12 @@ export class AuthService {
   async validateLocalUser(massarCode: string, password: string) {
     const user = await this.userService.findByMassarCode(massarCode);
     if (!user) throw new UnauthorizedException('User not found!');
+
+    // Check if user is inactive
+    if (user.status === 'INACTIVE') {
+      throw new UnauthorizedException('Your account is inactive. Please contact the administrator.');
+    }
+
     const studentBacOption = await this.userService.findBacOptionByUserId(
       user.id,
     );

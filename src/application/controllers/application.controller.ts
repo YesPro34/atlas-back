@@ -8,6 +8,9 @@ import {
   Delete,
   ParseUUIDPipe,
   Request,
+  Query,
+  ParseIntPipe,
+  DefaultValuePipe,
 } from '@nestjs/common';
 import { ApplicationService } from '../services/application.service';
 import {
@@ -26,15 +29,28 @@ export class ApplicationController {
     return this.applicationService.create(userId, createApplicationDto);
   }
 
-  @Get()
-  findAll(@Request() req) {
+  @Get('paginated')
+  async findAllPaginated(
+    @Request() req,
+    @Query('page', new DefaultValuePipe(1), ParseIntPipe) page: number,
+    @Query('perPage', new DefaultValuePipe(10), ParseIntPipe) perPage: number,
+  ) {
     const userId = req.user.id;
-    return this.applicationService.findAll(userId);
+    return this.applicationService.findAllPaginated(userId, {
+      page,
+      perPage,
+    });
   }
 
   @Get("all")
   findAllApplications() {
     return this.applicationService.findAllApplications();
+  }
+
+  @Get('check/:schoolId')
+  checkApplication(@Param('schoolId', ParseUUIDPipe) schoolId: string, @Request() req) {
+    const userId = req.user.id;
+    return this.applicationService.checkApplication(userId, schoolId);
   }
 
   @Get(':id')

@@ -66,7 +66,7 @@ export class UserRepository {
   }
 
   async findById(id: string) {
-    return await this.prisma.user.findUnique({ where: { id } });
+    return await this.prisma.user.findFirst({ where: { id } });
   }
 
   async update(id: string, user: any) {

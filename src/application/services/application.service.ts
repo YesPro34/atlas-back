@@ -16,6 +16,11 @@ const SCIENTIFIC_BAC_OPTIONS = ['PC', 'SVT', 'SMA', 'SMB', 'STM', 'STE'];
 const MANAGEMENT_BAC_OPTIONS = ['ECO', 'SGC'];
 const CPGE_ALLOWED_BAC_OPTIONS = ['PC', 'SVT', 'SMA', 'SMB'];
 
+interface PaginationParams {
+  page: number;
+  perPage: number;
+}
+
 @Injectable()
 export class ApplicationService {
   constructor(private readonly prisma: PrismaService) {}
@@ -651,5 +656,83 @@ export class ApplicationService {
         'Failed to update application choices: ' + error.message,
       );
     }
+  }
+
+  async findAllPaginated(userId: string, { page, perPage }: PaginationParams) {
+    const skip = (page - 1) * perPage;
+
+    const [total, applications] = await Promise.all([
+      // Get total count
+      this.prisma.application.count({
+        where: { userId },
+      }),
+      // Get paginated data
+      this.prisma.application.findMany({
+        where: { userId },
+        include: {
+          school: {
+            select: {
+              id: true,
+              name: true,
+            },
+          },
+          choices: {
+            include: {
+              filiere: {
+                select: {
+                  id: true,
+                  name: true,
+                },
+              },
+              city: {
+                select: {
+                  id: true,
+                  name: true,
+                },
+              },
+            },
+            orderBy: {
+              rank: 'asc',
+            },
+          },
+        },
+        orderBy: {
+          applicationDate: 'desc',
+        },
+        skip,
+        take: perPage,
+      }),
+    ]);
+
+    const lastPage = Math.ceil(total / perPage);
+
+    return {
+      data: applications,
+      meta: {
+        total,
+        perPage,
+        currentPage: page,
+        lastPage,
+      },
+    };
+  }
+
+  async checkApplication(userId: string, schoolId: string) {
+    const application = await this.prisma.application.findUnique({
+      where: {
+        userId_schoolId: {
+          userId,
+          schoolId,
+        },
+      },
+      select: {
+        status: true,
+      },
+    });
+
+    return {
+      exists: !!application,
+      status: application?.status || null,
+    };
   }
 }
