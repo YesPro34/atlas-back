@@ -49,15 +49,17 @@ model SchoolType {
 }
 
 model School {
-  id                String      @id @default(uuid())
-  name              String      @map("nom")
-  typeId            String      @map("type_id")
-  type              SchoolType  @relation(fields: [typeId], references: [id], onDelete: Cascade)
-  isOpen            Boolean     @default(false) @map("est_ouverte")
-  filieres          Filiere[]
-  applications      Application[]
-  cities            City[]      @relation("CitySchools")
-  bacOptionsAllowed BacOption[] @relation("SchoolBacOptions")
+  id                            String      @id @default(uuid())
+  name                          String      @map("nom")
+  typeId                        String      @map("type_id")
+  type                          SchoolType  @relation(fields: [typeId], references: [id], onDelete: Cascade)
+  isOpen                        Boolean     @default(false) @map("est_ouverte")
+  maxFilieres                   Int?        @map("max_filieres")
+  allowMultipleFilieresSelection Boolean    @default(false) @map("allow_multiple_filieres_selection")
+  filieres                      Filiere[]
+  applications                  Application[]
+  cities                        City[]      @relation("CitySchools")
+  bacOptionsAllowed             BacOption[] @relation("SchoolBacOptions")
 
   @@map("ecoles")
 }

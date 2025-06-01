@@ -24,6 +24,8 @@ interface CreateSchoolWithRelations {
   bacOptionNames: string[];
   cityNames: string[];
   filieresWithBacOptions: FiliereWithBacOptions[];
+  maxFilieres?: number;
+  allowMultipleFilieresSelection: boolean;
 }
 
 @Injectable()
@@ -103,6 +105,8 @@ export class SchoolService {
     bacOptionNames,
     cityNames,
     filieresWithBacOptions,
+    maxFilieres,
+    allowMultipleFilieresSelection,
   }: CreateSchoolWithRelations): Promise<School> {
     // Verify that the school type exists
     await this.schoolTypeService.findOne(typeId);
@@ -113,6 +117,8 @@ export class SchoolService {
         name,
         typeId,
         isOpen,
+        maxFilieres,
+        allowMultipleFilieresSelection,
         // Connect the school to existing bac options
         bacOptionsAllowed: {
           connect: bacOptionNames.map((name) => ({ name })),

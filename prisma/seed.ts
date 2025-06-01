@@ -68,7 +68,111 @@ const schoolTypes = [
     requiresCityRanking: false,
     maxFilieres: 3,
     allowMultipleFilieresSelection: true,
-}
+  },
+  {
+    name: "Instituts Supérieurs des Professions Infirmières et Techniques de Santé",
+    code: "ISPITS",
+    maxCities: null,
+    requiresCityRanking: false,
+    maxFilieres: 25,
+    allowMultipleFilieresSelection: true
+  },
+  {
+    name: "Institut Supérieur des Pêches Maritimes",
+    code: "ISPM",
+    maxCities: null,
+    requiresCityRanking: false,
+    maxFilieres: 3,
+    allowMultipleFilieresSelection: true
+  },
+  {
+    name: "Institut Supérieur des Sciences de la Santé",
+    code: "ISSS",
+    maxCities: null,
+    requiresCityRanking: false,
+    maxFilieres: 7,
+    allowMultipleFilieresSelection: true
+  },
+  {
+    name: "École Nationale d'Administration",
+    code: "ENA",
+    maxCities: 6,
+    requiresCityRanking: true,
+    maxFilieres: null,
+    allowMultipleFilieresSelection: false
+  },
+  {
+    name: "Institut de Médecine Militaire",
+    code: "IMM",
+    maxCities: null,
+    requiresCityRanking: false,
+    maxFilieres: 4,
+    allowMultipleFilieresSelection: true
+  },
+  {
+    name: "Institut de Formation des Techniciens Spécialisés en Architecture et en Urbanisme",
+    code: "IFTSAU",
+    maxCities: null,
+    requiresCityRanking: false,
+    maxFilieres: 4,
+    allowMultipleFilieresSelection: true
+  },
+  {
+    name: "Institut Mines-Télécom",
+    code: "IMT",
+    maxCities: null,
+    requiresCityRanking: false,
+    maxFilieres: 2,
+    allowMultipleFilieresSelection: true
+  },
+  {
+    name: "Institut de Formation aux Métiers de l'Industrie Automobile de Casablanca",
+    code: "IFMIAC",
+    maxCities: null,
+    requiresCityRanking: false,
+    maxFilieres: 3,
+    allowMultipleFilieresSelection: false,
+  },
+  {
+    name: "Institut de Formation aux Métiers de l'Industrie Automobile de Kénitra",
+    code: "IFMIAK",
+    maxCities: null,
+    requiresCityRanking: false,
+    maxFilieres: 3,
+    allowMultipleFilieresSelection: false,
+  },
+  {
+    name: "Institut de Formation aux Métiers de l'Industrie Automobile de Tanger",
+    code: "IFMIAT",
+    maxCities: null,
+    requiresCityRanking: false,
+    maxFilieres: 3,
+    allowMultipleFilieresSelection: false,
+  },
+  {
+    name: "Institut de Formation aux Métiers de la Santé et de l'Action Sociale de Beni Mellal",
+    code: "IFMSASB",
+    maxCities: null,
+    requiresCityRanking: false,
+    maxFilieres: 3,
+    allowMultipleFilieresSelection: false,
+  },
+  {
+    name: "Institut de Formation aux Métiers de la Santé et de l'Action Sociale de Oujda",
+    code: "IFMSASO",
+    maxCities: null,
+    requiresCityRanking: false,
+    maxFilieres: 3,
+    allowMultipleFilieresSelection: false,
+  },
+  {
+    name: "Institut de Formation aux Métiers de la Santé et de l'Action Sociale de Meknès",
+    code: "IFMSASM",
+    maxCities: null,
+    requiresCityRanking: false,
+    maxFilieres: 3,
+    allowMultipleFilieresSelection: false,
+  },
 ];
 
 // Cities seeding

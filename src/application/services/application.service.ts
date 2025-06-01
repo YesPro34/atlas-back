@@ -298,7 +298,7 @@ export class ApplicationService {
       throw new BadRequestException('At least one choice is required');
     }
 
-    // For schools with city ranking
+    // For city ranking schools
     if (schoolType.requiresCityRanking) {
       if (schoolType.maxCities && choices.length > schoolType.maxCities) {
         throw new BadRequestException(
@@ -333,9 +333,51 @@ export class ApplicationService {
         }
       }
     }
+    // Special case for IFMSAS schools - must have exactly 3 different filières
+    else if (schoolType.code?.includes('IFMSAS')) {
+      if (choices.length !== 3) {
+        throw new BadRequestException(
+          `Exactly 3 different filières are required for ${school.name}`,
+        );
+      }
+      // Check that all choices are different
+      const uniqueFilieres = new Set(choices.map((c) => c.filiereId));
+      if (uniqueFilieres.size !== 3) {
+        throw new BadRequestException(
+          'Multiple selections of the same filière are not allowed for IFMSAS schools',
+        );
+      }
+      // Validate all choices are filières
+      for (const choice of choices) {
+        if (choice.type !== ChoiceType.FILIERE) {
+          throw new BadRequestException(
+            'Only filière choices are allowed for this school type',
+          );
+        }
+        // Verify filière exists and belongs to the school
+        const filiere = await this.prisma.filiere.findFirst({
+          where: {
+            id: choice.filiereId,
+            schoolId: school.id,
+          },
+        });
+        if (!filiere) {
+          throw new BadRequestException(
+            `Filière with ID ${choice.filiereId} does not belong to this school`,
+          );
+        }
+      }
+    }
     // For schools with filière selection
     else if (schoolType.maxFilieres) {
-      if (choices.length > schoolType.maxFilieres) {
+      // For IFMIA schools, always allow exactly 3 choices
+      if (schoolType.code?.includes('IFMIA')) {
+        if (choices.length !== 3) {
+          throw new BadRequestException(
+            `Exactly 3 choices are required for ${school.name}`,
+          );
+        }
+      } else if (choices.length > schoolType.maxFilieres) {
         throw new BadRequestException(
           `Maximum ${schoolType.maxFilieres} filières can be selected for ${school.name}`,
         );

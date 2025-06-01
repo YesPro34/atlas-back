@@ -14,6 +14,7 @@ import refreshConfig from './auth/config/refresh.config';
 import { BacOptionModule } from './bac-option/bac-option.module';
 import { SchoolTypeModule } from './school-type/school-type.module';
 import { ApplicationModule } from './application/application.module';
+import { ExportModule } from './export/export.module';
 
 @Module({
   imports: [
@@ -31,6 +32,7 @@ import { ApplicationModule } from './application/application.module';
     BacOptionModule,
     SchoolTypeModule,
     ApplicationModule,
+    ExportModule,
   ],
   controllers: [AppController, UserController],
   providers: [AppService],

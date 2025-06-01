@@ -56,7 +56,30 @@ interface ProcessedSchoolData {
   cities: string[];
   filieresWithBacOptions: FiliereWithBacOptions[];
   defaultBacOptions: string[];
+  maxFilieres?: number;
+  allowMultipleFilieresSelection: boolean;
 }
+
+const SCHOOL_TYPE_CONSTRAINTS = {
+  'ISPITS': { maxFilieres: 1, allowMultipleFilieresSelection: false },
+  'ISPM': { maxFilieres: 1, allowMultipleFilieresSelection: false },
+  'ISSS': { maxFilieres: 1, allowMultipleFilieresSelection: false },
+  'ENA': { maxFilieres: 1, allowMultipleFilieresSelection: false },
+  'IMM': { maxFilieres: 1, allowMultipleFilieresSelection: false },
+  'IFTSAU': { maxFilieres: 1, allowMultipleFilieresSelection: false },
+  'IMT': { maxFilieres: 1, allowMultipleFilieresSelection: false },
+  'IFMIAC': { maxFilieres: 3, allowMultipleFilieresSelection: true },
+  'IFMIAK': { maxFilieres: 3, allowMultipleFilieresSelection: true },
+  'IFMIAT': { maxFilieres: 3, allowMultipleFilieresSelection: true },
+  'IFMSASB': { maxFilieres: 3, allowMultipleFilieresSelection: false },
+  'IFMSASO': { maxFilieres: 3, allowMultipleFilieresSelection: false },
+  'IFMSASM': { maxFilieres: 3, allowMultipleFilieresSelection: false },
+  'ISMALA': { maxFilieres: 3, allowMultipleFilieresSelection: false },
+  'FMDP': { maxFilieres: 3, allowMultipleFilieresSelection: false },
+  'IMS': { maxFilieres: 2, allowMultipleFilieresSelection: false },
+  'IFMBTP': { maxFilieres: 3, allowMultipleFilieresSelection: true },
+  'CPGE': { maxFilieres: null, allowMultipleFilieresSelection: false }
+};
 
 // @UseGuards(JwtAuthGuard)
 @Controller('school')
@@ -133,8 +156,13 @@ export class SchoolController {
           try {
             // Look up the SchoolType by code
             const typeCode = row.Type?.trim().toUpperCase() || 'UNKNOWN';
-            const schoolType =
-              await this.schoolTypeService.findByCode(typeCode);
+            const schoolType = await this.schoolTypeService.findByCode(typeCode);
+
+            // Get constraints for this school type
+            const constraints = SCHOOL_TYPE_CONSTRAINTS[typeCode] || {
+              maxFilieres: null,
+              allowMultipleFilieresSelection: false,
+            };
 
             // Initialize school data on first encounter
             schoolsMap.set(currentSchool, {
@@ -148,6 +176,8 @@ export class SchoolController {
                 : [],
               filieresWithBacOptions: [],
               defaultBacOptions: bacOptions,
+              maxFilieres: constraints.maxFilieres,
+              allowMultipleFilieresSelection: constraints.allowMultipleFilieresSelection,
             });
           } catch (error) {
             // If school type not found, log error and skip this school
@@ -222,6 +252,8 @@ export class SchoolController {
               : schoolData.defaultBacOptions,
           cityNames: schoolData.cities,
           filieresWithBacOptions: schoolData.filieresWithBacOptions,
+          maxFilieres: schoolData.maxFilieres,
+          allowMultipleFilieresSelection: schoolData.allowMultipleFilieresSelection,
         });
 
         results.push({
