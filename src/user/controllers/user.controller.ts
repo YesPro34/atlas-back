@@ -43,6 +43,9 @@ interface ExcelRow {
   note_svt?: string;
   note_anglais?: string;
   note_philosophie?: string;
+  note_comptabilite?: string;
+  note_economie?: string;
+  note_management?: string;
 }
 
 @Controller('user')
@@ -133,13 +136,16 @@ export class UserController {
           status: row.status as UserStatus,
           bacOptionId: bacOption?.id,
           city: String(row.ville),
-          nationalMark: parseFloat(row.note_nationale ?? '0'),
-          generalMark: parseFloat(row.note_globale ?? '0'),
-          mathMark: parseFloat(row.note_math ?? '0'),
-          physicMark: parseFloat(row.note_physique ?? '0'),
-          svtMark: parseFloat(row.note_svt ?? '0'),
-          englishMark: parseFloat(row.note_anglais ?? '0'),
-          philosophyMark: parseFloat(row.note_philosophie ?? '0'),
+          nationalMark: parseFloat(String(row.note_nationale)) ?? null,
+          generalMark: parseFloat(String(row.note_globale)) ?? null,
+          mathMark: parseFloat(String(row.note_math)) ?? null,
+          physicMark: parseFloat(String(row.note_physique)) ?? null,
+          svtMark: parseFloat(String(row.note_svt)) ?? null,
+          englishMark: parseFloat(String(row.note_anglais)) ?? null,
+          philosophyMark: parseFloat(String(row.note_philosophie)) ?? null,
+          comptabilityMark: parseFloat(String(row.note_comptabilite)) ?? null,
+          economyMark: parseFloat(String(row.note_economie)) ?? null,
+          managementMark: parseFloat(String(row.note_management)) ?? null,
         };
 
         await this.userService.createUser(createUserDto);

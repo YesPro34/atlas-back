@@ -15,6 +15,7 @@ import { BacOptionModule } from './bac-option/bac-option.module';
 import { SchoolTypeModule } from './school-type/school-type.module';
 import { ApplicationModule } from './application/application.module';
 import { ExportModule } from './export/export.module';
+import { SettingsModule } from './settings/settings.module';
 
 @Module({
   imports: [
@@ -33,6 +34,7 @@ import { ExportModule } from './export/export.module';
     SchoolTypeModule,
     ApplicationModule,
     ExportModule,
+    SettingsModule,
   ],
   controllers: [AppController, UserController],
   providers: [AppService],

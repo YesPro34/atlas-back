@@ -43,6 +43,9 @@ export class UserRepository {
         svtMark: true,
         englishMark: true,
         philosophyMark: true,
+        comptabilityMark: true,
+        economyMark: true,
+        managementMark: true,
       },
     });
   }
@@ -61,6 +64,16 @@ export class UserRepository {
         status: true,
         bacOption: true,
         city: true,
+        nationalMark: true,
+        generalMark: true,
+        mathMark: true,
+        physicMark: true,
+        svtMark: true,
+        englishMark: true,
+        philosophyMark: true,
+        comptabilityMark: true,
+        economyMark: true,
+        managementMark: true,
       },
     });
   }

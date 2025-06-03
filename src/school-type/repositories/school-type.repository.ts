@@ -34,12 +34,13 @@ export class SchoolTypeRepository {
   }
 
   async findByCode(code: string) {
-    return await this.prisma.schoolType.findUnique({
+    const result = await this.prisma.schoolType.findUnique({
       where: { code },
       include: {
         schools: true,
       },
     });
+    return result;
   }
 
   async update(id: string, updateSchoolTypeDto: UpdateSchoolTypeDto) {

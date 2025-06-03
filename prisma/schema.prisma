@@ -28,6 +28,9 @@ model User {
   svtMark            Float?         @map("note_svt")
   englishMark        Float?         @map("note_anglais")
   philosophyMark     Float?         @map("note_philosophie")
+  comptabilityMark   Float?         @map("note_comptabilite")
+  economyMark        Float?         @map("note_economie")
+  managementMark     Float?         @map("note_management")
   applications       Application[]
 
   @@map("utilisateurs")
@@ -121,6 +124,13 @@ model BacOption {
   users    User[]    @relation("UserBacOption")
   schools  School[]  @relation("SchoolBacOptions")
   filieres Filiere[] @relation("FiliereBacOptions")
+}
+
+model Settings {
+  key   String @id
+  value String
+
+  @@map("settings")
 }
 
 enum Role {

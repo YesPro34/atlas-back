@@ -17,6 +17,9 @@ export class UserEntity {
   svtMark?: number;
   englishMark?: number;
   philosophyMark?: number;
+  comptabilityMark?: number;
+  economyMark?: number;
+  managementMark?: number;
   applications?: Application[];
 
   constructor(partial: Partial<UserEntity>) {

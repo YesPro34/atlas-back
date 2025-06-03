@@ -94,7 +94,7 @@ const schoolTypes = [
     allowMultipleFilieresSelection: true
   },
   {
-    name: "École Nationale d'Administration",
+    name: "École Nationale d'Architecture",
     code: "ENA",
     maxCities: 6,
     requiresCityRanking: true,
@@ -102,7 +102,7 @@ const schoolTypes = [
     allowMultipleFilieresSelection: false
   },
   {
-    name: "Institut de Médecine Militaire",
+    name: "Institut des Mines Marrakech",
     code: "IMM",
     maxCities: null,
     requiresCityRanking: false,
@@ -118,7 +118,7 @@ const schoolTypes = [
     allowMultipleFilieresSelection: true
   },
   {
-    name: "Institut Mines-Télécom",
+    name: "Institut Mines Touissit",
     code: "IMT",
     maxCities: null,
     requiresCityRanking: false,

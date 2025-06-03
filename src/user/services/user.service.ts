@@ -137,6 +137,9 @@ export class UserService {
         svtMark: true,
         englishMark: true,
         philosophyMark: true,
+        comptabilityMark: true,
+        economyMark: true,
+        managementMark: true,
       }
     });
 

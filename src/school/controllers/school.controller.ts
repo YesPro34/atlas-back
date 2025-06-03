@@ -61,24 +61,27 @@ interface ProcessedSchoolData {
 }
 
 const SCHOOL_TYPE_CONSTRAINTS = {
-  'ISPITS': { maxFilieres: 1, allowMultipleFilieresSelection: false },
-  'ISPM': { maxFilieres: 1, allowMultipleFilieresSelection: false },
-  'ISSS': { maxFilieres: 1, allowMultipleFilieresSelection: false },
-  'ENA': { maxFilieres: 1, allowMultipleFilieresSelection: false },
-  'IMM': { maxFilieres: 1, allowMultipleFilieresSelection: false },
-  'IFTSAU': { maxFilieres: 1, allowMultipleFilieresSelection: false },
-  'IMT': { maxFilieres: 1, allowMultipleFilieresSelection: false },
-  'IFMIAC': { maxFilieres: 3, allowMultipleFilieresSelection: true },
-  'IFMIAK': { maxFilieres: 3, allowMultipleFilieresSelection: true },
-  'IFMIAT': { maxFilieres: 3, allowMultipleFilieresSelection: true },
+  'ENSA': { maxFilieres: null, allowMultipleFilieresSelection: false },
+  'ENSAM': { maxFilieres: null, allowMultipleFilieresSelection: false },
+  'ENCG': { maxFilieres: null, allowMultipleFilieresSelection: false },
+  'CPGE': { maxFilieres: 8, allowMultipleFilieresSelection: true },
+  'ISMALA': { maxFilieres: 3, allowMultipleFilieresSelection: true },
+  'IMS': { maxFilieres: 2, allowMultipleFilieresSelection: true },
+  'IFMBTP': { maxFilieres: 3, allowMultipleFilieresSelection: true },
+  'FMPD': { maxFilieres: 3, allowMultipleFilieresSelection: true },
+  'ISPITS': { maxFilieres: 25, allowMultipleFilieresSelection: true },
+  'ISPM': { maxFilieres: 3, allowMultipleFilieresSelection: true },
+  'ISSS': { maxFilieres: 7, allowMultipleFilieresSelection: true },
+  'ENA': { maxFilieres: null, allowMultipleFilieresSelection: false },
+  'IMM': { maxFilieres: 4, allowMultipleFilieresSelection: true },
+  'IFTSAU': { maxFilieres: 4, allowMultipleFilieresSelection: true },
+  'IMT': { maxFilieres: 2, allowMultipleFilieresSelection: true },
+  'IFMIAC': { maxFilieres: 3, allowMultipleFilieresSelection: false },
+  'IFMIAK': { maxFilieres: 3, allowMultipleFilieresSelection: false },
+  'IFMIAT': { maxFilieres: 3, allowMultipleFilieresSelection: false },
   'IFMSASB': { maxFilieres: 3, allowMultipleFilieresSelection: false },
   'IFMSASO': { maxFilieres: 3, allowMultipleFilieresSelection: false },
-  'IFMSASM': { maxFilieres: 3, allowMultipleFilieresSelection: false },
-  'ISMALA': { maxFilieres: 3, allowMultipleFilieresSelection: false },
-  'FMDP': { maxFilieres: 3, allowMultipleFilieresSelection: false },
-  'IMS': { maxFilieres: 2, allowMultipleFilieresSelection: false },
-  'IFMBTP': { maxFilieres: 3, allowMultipleFilieresSelection: true },
-  'CPGE': { maxFilieres: null, allowMultipleFilieresSelection: false }
+  'IFMSASM': { maxFilieres: 3, allowMultipleFilieresSelection: false }
 };
 
 // @UseGuards(JwtAuthGuard)
@@ -159,16 +162,17 @@ export class SchoolController {
             const schoolType = await this.schoolTypeService.findByCode(typeCode);
 
             // Get constraints for this school type
-            const constraints = SCHOOL_TYPE_CONSTRAINTS[typeCode] || {
-              maxFilieres: null,
-              allowMultipleFilieresSelection: false,
-            };
-
+            const constraints = SCHOOL_TYPE_CONSTRAINTS[typeCode];
+            if (!constraints) {
+              throw new Error(`No constraints found for school type: ${typeCode}`);
+            }
             // Initialize school data on first encounter
             schoolsMap.set(currentSchool, {
               name: currentSchool,
               typeId: schoolType.id,
-              isOpen: row.isOpen?.trim().toUpperCase() === 'TRUE',
+              isOpen: typeof row.isOpen === 'string' 
+                ? row.isOpen.trim().toUpperCase() === 'TRUE'
+                : Boolean(row.isOpen),
               cities: row.Villes
                 ? row.Villes.split(',')
                     .map((city) => city.trim())
@@ -180,11 +184,11 @@ export class SchoolController {
               allowMultipleFilieresSelection: constraints.allowMultipleFilieresSelection,
             });
           } catch (error) {
-            // If school type not found, log error and skip this school
+            // If school type not found or constraints not found, log error and skip this school
             results.push({
               school: currentSchool,
               status: 'Error',
-              reason: `Invalid school type: ${row.Type?.trim().toUpperCase() || 'UNKNOWN'}`,
+              reason: error.message || `Invalid school type: ${row.Type?.trim().toUpperCase() || 'UNKNOWN'}`,
             });
             currentSchool = null;
             continue;

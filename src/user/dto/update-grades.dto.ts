@@ -42,4 +42,22 @@ export class UpdateGradesDto {
   @Min(0)
   @Max(20)
   philosophyMark?: number;
+
+  @IsOptional()
+  @IsNumber()
+  @Min(0)
+  @Max(20)
+  comptabilityMark?: number;
+
+  @IsOptional()
+  @IsNumber()
+  @Min(0)
+  @Max(20)
+  economyMark?: number;
+
+  @IsOptional()
+  @IsNumber()
+  @Min(0)
+  @Max(20)
+  managementMark?: number;
 } 

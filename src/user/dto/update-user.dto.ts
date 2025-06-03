@@ -7,6 +7,7 @@ import {
   Min,
   Max,
   IsUUID,
+  ValidateIf,
 } from 'class-validator';
 import { BacOptionEntity } from 'src/bac-option/bacOption.entity';
 
@@ -84,4 +85,22 @@ export class UpdateUserDto {
   @Min(0, { message: 'Philosophy mark must be at least 0' })
   @Max(20, { message: 'Philosophy mark must not exceed 20' })
   philosophyMark: number;
+
+  @IsOptional()
+  @IsNumber()
+  @Min(0, { message: 'Comptability mark must be at least 0' })
+  @Max(20, { message: 'Comptability mark must not exceed 20' })
+  comptabilityMark: number;
+
+  @IsOptional()
+  @IsNumber()
+  @Min(0, { message: 'Economy mark must be at least 0' })
+  @Max(20, { message: 'Economy mark must not exceed 20' })
+  economyMark: number;
+
+  @IsOptional()
+  @IsNumber()
+  @Min(0, { message: 'Management mark must be at least 0' })
+  @Max(20, { message: 'Management mark must not exceed 20' })
+  managementMark: number;
 }
