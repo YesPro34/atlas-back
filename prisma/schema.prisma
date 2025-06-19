@@ -63,6 +63,7 @@ model School {
   applications                  Application[]
   cities                        City[]      @relation("CitySchools")
   bacOptionsAllowed             BacOption[] @relation("SchoolBacOptions")
+  image                         String?
 
   @@map("ecoles")
 }

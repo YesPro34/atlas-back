@@ -7,6 +7,7 @@ export class School {
   isOpen: boolean;
   bacOptionsAllowed: { id: string; name: string }[];
   cities: { id: string; name: string }[];
+  image?: string | null;
   createdAt?: Date;
   updatedAt?: Date;
 

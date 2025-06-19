@@ -62,13 +62,14 @@ export class SchoolRepository {
   }
 
   async update(id: string, updateSchoolDto: UpdateSchoolDto) {
-    const { cityIds, bacOptionIds, typeId, ...schoolData } = updateSchoolDto;
+    const { cityIds, bacOptionIds, typeId, image, ...schoolData } = updateSchoolDto;
 
     return await this.prisma.school.update({
       where: { id },
       data: {
         ...schoolData,
         typeId,
+        image,
         cities: cityIds
           ? {
               set: cityIds.map((id) => ({ id })),

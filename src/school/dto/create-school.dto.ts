@@ -28,4 +28,8 @@ export class CreateSchoolDto {
   @IsString({ each: true })
   @IsOptional()
   bacOptionIds?: string[];
+
+  @IsString()
+  @IsOptional()
+  image?: string;
 }

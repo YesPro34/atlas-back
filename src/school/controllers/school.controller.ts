@@ -21,6 +21,9 @@ import { diskStorage } from 'multer';
 import { SchoolType } from '@prisma/client';
 import { UpdateSchoolDto } from '../dto/update-school.dto';
 import { SchoolTypeService } from '../../school-type/services/school-type.service';
+import { extname } from 'path';
+import { File as MulterFile } from 'multer';
+import * as fs from 'fs/promises';
 // import { JwtAuthGuard } from 'src/auth/guards/jwt.guard';
 
 // Define the expected Excel row structure
@@ -279,5 +282,66 @@ export class SchoolController {
   @Get('filter/:bacOption')
   async getSchoolsByBacOption(@Param('bacOption') bacOption: string) {
     return await this.schoolService.filterByBacOption(bacOption);
+  }
+
+  @Post('upload-image/:schoolId')
+  @UseInterceptors(
+    FileInterceptor('file', {
+      storage: diskStorage({
+        destination: './uploads/schoolCard',
+        filename: (req, file, cb) => {
+          const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1e9);
+          cb(null, uniqueSuffix + extname(file.originalname));
+        },
+      }),
+    }),
+  )
+  async uploadSchoolImage(
+    @UploadedFile() file: MulterFile,
+    @Param('schoolId') schoolId: string
+  ) {
+    if (!file) {
+      throw new HttpException('No file uploaded', HttpStatus.BAD_REQUEST);
+    }
+
+    try {
+      // First verify the school exists
+      const school = await this.schoolService.findOne(schoolId);
+      if (!school) {
+        throw new HttpException('School not found', HttpStatus.NOT_FOUND);
+      }
+
+      const imagePath = `/uploads/schoolCard/${file.filename}`;
+      
+      // Create UpdateSchoolDto with only the image field
+      const updateSchoolDto: UpdateSchoolDto = {
+        image: imagePath
+      };
+      
+      // Update the school with the new image path
+      const updatedSchool = await this.schoolService.update(schoolId, updateSchoolDto);
+      
+      return { 
+        imagePath,
+        school: updatedSchool 
+      };
+    } catch (error) {
+      // If there's an error, we should delete the uploaded file
+      if (file.path) {
+        try {
+          await fs.unlink(file.path);
+        } catch (unlinkError) {
+          console.error('Error deleting uploaded file:', unlinkError);
+        }
+      }
+      
+      if (error instanceof HttpException) {
+        throw error;
+      }
+      throw new HttpException(
+        'Failed to update school image',
+        HttpStatus.INTERNAL_SERVER_ERROR
+      );
+    }
   }
 }
