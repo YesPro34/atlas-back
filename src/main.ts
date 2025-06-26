@@ -14,7 +14,7 @@ async function bootstrap() {
   app.use(cookieParser());
 
   app.enableCors({
-    origin: 'https://atlas-front-steel.vercel.app/',
+    origin: 'https://atlas-front-r6cx6d7l7-yassines-projects-4da58e85.vercel.app/',
     credentials: true,
   });
 
