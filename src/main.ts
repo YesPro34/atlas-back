@@ -14,7 +14,12 @@ async function bootstrap() {
   app.use(cookieParser());
 
   app.enableCors({
-    origin: 'https://atlas-front-r6cx6d7l7-yassines-projects-4da58e85.vercel.app/',
+    origin: [
+      'https://atlas-front-gzyu.vercel.app', // your current frontend
+      'https://atlas-front-gzyu-17936uduh-yassines-projects-4da58e85.vercel.app/',
+      'https://atlas-front-gzyu-git-main-yassines-projects-4da58e85.vercel.app/',
+      'http://localhost:3000', // local dev
+    ],
     credentials: true,
   });
 
