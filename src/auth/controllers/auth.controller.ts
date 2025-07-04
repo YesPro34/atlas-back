@@ -10,10 +10,6 @@ import { Response } from 'express';
 @Controller('auth')
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
-  // @Post('signup')
-  // registerUser(@Body() createUserDto: CreateUserDto) {
-  //   return this.authService.registerUser(createUserDto);
-  // }
 
   @Public()
   @UseGuards(LocalAuthGuard)
@@ -32,8 +28,8 @@ export class AuthController {
       httpOnly: true,
       secure: true, // set to true in production
       sameSite: 'none', // cross-site cookies
-      path: '/auth/refresh',
-      maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+      path: '/',
+      maxAge: 7 * 24 * 60 * 60 * 1000,
     });
 
     return {
@@ -57,8 +53,15 @@ export class AuthController {
   @UseGuards(RefreshAuthGuard)
   @Post('refresh')
   async refreshToken(@Request() req, @Res({ passthrough: true }) res: Response) {
+    console.log("Refresh endpoint called");
+    console.log("Cookies received:", req.cookies);
+    console.log("Refresh token from cookie:", req.cookies?.refresh_token);
+    
     const userId = req.user.id;
     const refreshToken = req.refreshToken; // set in guard
+    console.log("User ID:", userId);
+    console.log("Refresh token from guard:", refreshToken);
+    
     // Always fetch massarCode from userService
     const user = await this.authService.findUserById(userId);
     if (!user) {
@@ -74,7 +77,7 @@ export class AuthController {
       httpOnly: true,
       secure: true,
       sameSite: 'none',
-      path: '/auth/refresh',
+      path: '/',
       maxAge: 7 * 24 * 60 * 60 * 1000,
     });
 
