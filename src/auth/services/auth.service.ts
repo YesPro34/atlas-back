@@ -113,4 +113,8 @@ export class AuthService {
   async logOut(userId: string) {
     return await this.userService.updateHashedRefreshToken(userId, null);
   }
+
+  async findUserById(userId: string) {
+    return await this.userService.findUserById(userId);
+  }
 }
