@@ -15,9 +15,8 @@ async function bootstrap() {
 
   app.enableCors({
     origin: [
-      'https://atlas-front-gzyu.vercel.app', // your current frontend
-      'https://atlas-front-gzyu-17936uduh-yassines-projects-4da58e85.vercel.app/',
-      'https://atlas-front-gzyu-git-main-yassines-projects-4da58e85.vercel.app/',
+      'https://atlas-front-nine.vercel.app', // your main/production domain
+      'https://atlas-front-czete7ez8-yassines-projects-4da58e85.vercel.app', // latest deployment
       'http://localhost:3000', // local dev
     ],
     credentials: true,
