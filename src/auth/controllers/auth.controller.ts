@@ -15,6 +15,9 @@ export class AuthController {
   @UseGuards(LocalAuthGuard)
   @Post('login')
   async login(@Request() req, @Res({ passthrough: true }) res: Response) {
+    console.log("🔐 Login endpoint called");
+    console.log("🔐 Login - Request body:", req.body);
+    
     const { id, massarCode, role, bacOption, accessToken, refreshToken } =
       await this.authService.login(
         req.user.id,
@@ -23,6 +26,7 @@ export class AuthController {
         req.user.bacOption,
       );
 
+    console.log("🔐 Login - Tokens generated, setting refresh token cookie");
     // Set HTTP-only cookie
     res.cookie('refresh_token', refreshToken, {
       httpOnly: true,
@@ -31,14 +35,17 @@ export class AuthController {
       path: '/',
       maxAge: 7 * 24 * 60 * 60 * 1000,
     });
+    console.log("✅ Login - Refresh token cookie set successfully");
 
-    return {
+    const response = {
       id,
       massarCode,
       role,
       bacOption,
       accessToken,
     };
+    console.log("✅ Login - Returning response:", { id, massarCode, role, bacOption, accessToken: "***" });
+    return response;
   }
 
   @Roles('STUDENT')
@@ -53,20 +60,31 @@ export class AuthController {
   @UseGuards(RefreshAuthGuard)
   @Post('refresh')
   async refreshToken(@Request() req, @Res({ passthrough: true }) res: Response) {
+    console.log("🔄 Refresh endpoint called");
+    console.log("🔄 Refresh - Request cookies:", req.cookies);
+    console.log("🔄 Refresh - Request headers:", req.headers);
+    
     const userId = req.user.id;
     const refreshToken = req.refreshToken; // set in guard
+    console.log("🔄 Refresh - User ID from guard:", userId);
+    console.log("🔄 Refresh - Refresh token from guard:", refreshToken ? "EXISTS" : "NOT FOUND");
     
     // Always fetch massarCode from userService
     const user = await this.authService.findUserById(userId);
     if (!user) {
+      console.log("❌ Refresh - User not found for ID:", userId);
       throw new Error('User not found');
     }
     const massarCode = user.massarCode;
+    console.log("🔄 Refresh - Found user with massarCode:", massarCode);
 
+    console.log("🔄 Refresh - Calling authService.refreshToken");
     const { accessToken, refreshToken: newRefreshToken } =
       await this.authService.refreshToken(userId, massarCode);
+    console.log("✅ Refresh - New tokens generated successfully");
 
     // Re-set new refresh token in cookie
+    console.log("🔄 Refresh - Setting new refresh token in cookie");
     res.cookie('refresh_token', newRefreshToken, {
       httpOnly: true,
       secure: true,
@@ -74,12 +92,15 @@ export class AuthController {
       path: '/',
       maxAge: 7 * 24 * 60 * 60 * 1000,
     });
+    console.log("✅ Refresh - Cookie set successfully");
 
-    return {
+    const response = {
       id: userId,
       massarCode,
       accessToken,
     };
+    console.log("✅ Refresh - Returning response:", { id: userId, massarCode, accessToken: "***" });
+    return response;
   }
 
   @UseGuards(JwtAuthGuard)
