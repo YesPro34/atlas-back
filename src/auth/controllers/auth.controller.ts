@@ -27,15 +27,28 @@ export class AuthController {
       );
 
     console.log("🔐 Login - Tokens generated, setting refresh token cookie");
+    console.log("🔐 Login - Refresh token value (first 20 chars):", refreshToken.substring(0, 20) + "...");
+    
     // Set HTTP-only cookie
     res.cookie('refresh_token', refreshToken, {
       httpOnly: true,
-      secure: true, // set to true in production
-      sameSite: 'none', // cross-site cookies
+      secure: true,
+      sameSite: 'none', // Required for cross-origin requests
       path: '/',
       maxAge: 7 * 24 * 60 * 60 * 1000,
     });
     console.log("✅ Login - Refresh token cookie set successfully");
+    console.log("🔐 Login - Cookie details:", {
+      name: 'refresh_token',
+      httpOnly: true,
+      secure: true,
+      sameSite: 'none',
+      path: '/',
+      maxAge: 7 * 24 * 60 * 60 * 1000,
+    });
+    
+    // Log the Set-Cookie header that should be sent
+    console.log("🔐 Login - Set-Cookie header should be: refresh_token=...; HttpOnly; Secure; SameSite=None; Path=/; Max-Age=604800");
 
     const response = {
       id,
@@ -53,6 +66,29 @@ export class AuthController {
   getAll(@Request() req) {
     return {
       messege: `Now you can access this protected API. this is your user ID: ${req.user.id}`,
+    };
+  }
+
+  @Public()
+  @Get('test-cookies')
+  async testCookies(@Request() req, @Res({ passthrough: true }) res: Response) {
+    console.log("🧪 Test cookies endpoint called");
+    console.log("🧪 Test cookies - Request cookies:", req.cookies);
+    console.log("🧪 Test cookies - Request headers:", req.headers);
+    
+    // Set a test cookie
+    res.cookie('test_cookie', 'test_value', {
+      httpOnly: true,
+      secure: true,
+      sameSite: 'none',
+      path: '/',
+      maxAge: 60 * 1000, // 1 minute
+    });
+    
+    return {
+      message: "Test cookie set",
+      receivedCookies: req.cookies,
+      refreshTokenExists: !!req.cookies?.refresh_token
     };
   }
 
@@ -93,6 +129,14 @@ export class AuthController {
       maxAge: 7 * 24 * 60 * 60 * 1000,
     });
     console.log("✅ Refresh - Cookie set successfully");
+    console.log("🔄 Refresh - Cookie details:", {
+      name: 'refresh_token',
+      httpOnly: true,
+      secure: true,
+      sameSite: 'none',
+      path: '/',
+      maxAge: 7 * 24 * 60 * 60 * 1000,
+    });
 
     const response = {
       id: userId,
