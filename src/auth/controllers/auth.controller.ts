@@ -53,14 +53,8 @@ export class AuthController {
   @UseGuards(RefreshAuthGuard)
   @Post('refresh')
   async refreshToken(@Request() req, @Res({ passthrough: true }) res: Response) {
-    console.log("Refresh endpoint called");
-    console.log("Cookies received:", req.cookies);
-    console.log("Refresh token from cookie:", req.cookies?.refresh_token);
-    
     const userId = req.user.id;
     const refreshToken = req.refreshToken; // set in guard
-    console.log("User ID:", userId);
-    console.log("Refresh token from guard:", refreshToken);
     
     // Always fetch massarCode from userService
     const user = await this.authService.findUserById(userId);
